@@ -1,0 +1,2 @@
+run started 2026-10-08T10:23:13Z | where: local | python 3.12.12 | Darwin arm64
+ecan     RESULT: PASS - from local machine: public page BLOCKED by bot challenge (Incapsula); data endpoint HTTP 200, 2003 flow points over 7.0 days

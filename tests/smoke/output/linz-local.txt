@@ -1,0 +1,38 @@
+run started 2026-10-08T10:15:21Z | where: local | python 3.12.12 | Darwin arm64
+
+GET https://static.charts.linz.govt.nz/tide-tables/maj-ports/csv/Lyttelton%202026.csv
+  -> HTTP 200, 19485 bytes, Content-Type: text/csv
+  saved raw response -> tests/smoke/samples/linz_lyttelton_2026.csv
+
+--- First 6 raw lines ---
+"107,Lyttelton,43°36'S,172°43'E                                          "
+'Based on constituent set with reference date:,01-Jan-2016'
+'Local Std or Daylight Time,Tidal heights in metres.'
+'1,Th,1,2026,02:46,2.5,09:06,0.6,15:12,2.4,21:25,0.4'
+'2,Fr,1,2026,03:47,2.5,10:06,0.5,16:11,2.4,22:25,0.4'
+'3,Sa,1,2026,04:47,2.6,11:04,0.4,17:10,2.5,23:24,0.4'
+
+--- Layout ---
+header lines: 3; day rows: 365; tide events: 1410
+row layout: day, weekday, month, year, then up to 4 x (HH:MM, height_m)
+time basis stated in file header: 'Local Std or Daylight Time,Tidal heights in metres.'
+
+--- Tides for today, 2026-10-08 (Pacific/Auckland) ---
+02:59 as printed in file  high  2.4 m   -> UTC if civil time: 2026-10-07 13:59Z
+09:10 as printed in file  low   0.5 m   -> UTC if civil time: 2026-10-07 20:10Z
+15:25 as printed in file  high  2.4 m   -> UTC if civil time: 2026-10-08 02:25Z
+21:39 as printed in file  low   0.5 m   -> UTC if civil time: 2026-10-08 08:39Z
+Compare these with today's Lyttelton tides on the LINZ website / tide table PDF.
+
+--- Daylight saving check ---
+Tides are ~6.2 h apart. If the file is read with the wrong time basis, the gap
+between the two tides either side of a clock change is off by one hour.
+clock change at 2026-04-05 02:00 NZST:
+  A (file = civil time, daylight-adjusted): gap 6.12 h, neighbours avg 6.19 h
+  B (file = NZ Standard Time all year):     gap 5.12 h, neighbours avg 6.19 h
+clock change at 2026-09-27 03:00 NZDT:
+  A (file = civil time, daylight-adjusted): gap 6.10 h, neighbours avg 6.19 h
+  B (file = NZ Standard Time all year):     gap 7.10 h, neighbours avg 6.19 h
+CONCLUSION: file times are civil time, ALREADY adjusted for daylight saving.
+
+RESULT: PASS - 365 day rows, 1410 tides, 4 today; times are civil time, ALREADY adjusted for daylight saving

@@ -1,0 +1,25 @@
+# M0: check whether ECan answers requests coming from GitHub Actions.
+# Run it by hand: GitHub -> Actions -> "M0 smoke - ECan" -> Run workflow.
+name: M0 smoke - ECan
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run ECan smoke test
+        run: python tests/smoke/run_all.py ecan
+      - name: Keep the output as evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-output
+          path: |
+            tests/smoke/output/
+            tests/smoke/samples/
