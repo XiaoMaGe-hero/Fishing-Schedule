@@ -1,0 +1,6 @@
+# Runtime
+jsonschema>=4.20
+PyYAML>=6.0
+astral>=3.2
+# Tests
+pytest>=8.0

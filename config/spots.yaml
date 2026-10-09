@@ -1,0 +1,29 @@
+# Fishing spots. Add a spot by adding a block here; no code change needed.
+# Values marked "to confirm" are starting guesses from the product design (section 7).
+# A null value means "not known yet": the rule that needs it is skipped.
+
+- id: new-brighton-pier
+  name: New Brighton Pier
+  lat: -43.507              # approximate, to confirm
+  lon: 172.733              # approximate, to confirm
+  shore_facing_deg: 90      # direction the shore faces (towards the sea); to confirm
+  tide_reference: lyttelton
+  tide_offset_min: 0        # minutes relative to Lyttelton; to fill in
+  allow_night: false        # to confirm
+  best_tide_window_min: [-120, 120]   # minutes relative to high tide
+  max_gust_kmh: 45
+  max_wave_m: 2.0
+  notes: ""                 # Liang's own analysis of this spot, shown on the page
+
+- id: southshore
+  name: Southshore
+  lat: -43.558              # approximate, to confirm
+  lon: 172.752              # approximate, to confirm
+  shore_facing_deg: null    # to fill in
+  tide_reference: lyttelton
+  tide_offset_min: null     # inside the estuary the tide is later than on the open coast; to fill in
+  allow_night: false
+  best_tide_window_min: [-120, 120]
+  max_gust_kmh: 45
+  max_wave_m: 2.0
+  notes: ""

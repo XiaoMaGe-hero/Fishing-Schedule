@@ -1,0 +1,80 @@
+run started 2026-10-08T10:28:10Z | where: github | python 3.12.15 | Linux x86_64
+
+Running from: GitHub Actions
+GET https://www.ecan.govt.nz/data/riverflow/sitedetails/66401
+  -> HTTP 200, 42556 bytes, Content-Type: text/html; charset=utf-8
+public page: readable
+  saved raw response -> tests/smoke/samples/ecan_page_66401.html
+page <title>: River flow data  - Waimakariri River at Old Highway Bridge | Environment Canterbury
+
+--- Visible text around 'm3/s' (is the latest value in the HTML?) ---
+
+--- Visible text mentioning 'tid' (tide / tidal) ---
+  (none)
+
+--- <script src> files ---
+  /_resources/themes/ecan/js/lib/html5shiv-printshiv.js?m=1791334820
+  https://www.googletagmanager.com/gtag/js?id=G-112FBVQVS1
+  /_resources/themes/ecan/js/lib/jquery-1.12.4.min.js
+  /_resources/themes/ecan/js/jquery-ui/jquery-ui.min.js
+  /_resources/themes/ecan/js/lib/jquery.stickytableheaders.min.js
+  /_resources/themes/ecan/js/lib/lightbox.min.js
+  /_resources/app/js/match-height/jquery.matchHeight-min.js
+  /_resources/themes/ecan/js/lib/modernizr.js
+  /_resources/ecandataservices/js/blockui/blockui.js
+  /_resources/app/js/owl-carousel/owl.carousel.min.js
+  /_resources/themes/ecan/js/scripts.js
+  /_resources/ecandataservices/js/date.format.js?m=1791334820
+  /_resources/ecandataservices/js/baseScripts.js?m=1791334820
+  /_resources/ecandataservices/js/dataServicesScripts.js?m=1791334820
+  /_resources/vendor/aetchell/elemental-highchart/client/js/code/highstock.js
+  /_resources/vendor/aetchell/elemental-highchart/client/js/code/highcharts-more.js
+  /_resources/vendor/aetchell/elemental-highchart/client/js/code/modules/exporting.js
+  /_resources/vendor/aetchell/elemental-highchart/client/js/code/modules/data.js
+  /_resources/vendor/aetchell/elemental-highchart/client/js/code/modules/solid-gauge.js
+  /_resources/vendor/aetchell/elemental-highchart/client/js/code/modules/accessibility.js
+  /_resources/vendor/aetchell/elemental-highchart/client/js/code/modules/offline-exporting.js
+  /_resources/vendor/pikselin/silverstripe-admin-edit-link/client/js/script.js?m=1791334820
+  https://staticcdn.co.nz/embed/embed.js
+  //cdn.monsido.com/tool/javascripts/monsido.js
+  /_Incapsula_Resource?SWJIYLWA=719d34d31c8e3a6e6fffd425f7e032f3&ns=1&cb=956419464
+
+--- URLs and paths in the HTML that look like data endpoints ---
+  /data/riverflow
+  /data/riverflow/RiverflowData/66401/River+Flow
+  /data/riverflow/RiverflowData/66401/River+Flow/1_week
+  /data/riverflow/sitedetails/66401#main
+  /data/riverflow?loc=N
+  https://data.ecan.govt.nz/Catalogue/Method?MethodId=79&SiteNo=66401#tab-data
+
+--- Inline script lines that fetch data ---
+  ...fer"></script> <script nonce="67lA4RTnEK8B0YAy"> $(window).load(function () { $.getJSON('/data/riverflow/RiverflowData/66401/River+Flow/1_week', function (data) { $('#RiverflowData').highcharts('StockChart', { tooltip: {split: false}, ...
+  ... buttons: ChartButtons.rangeDWM }, series: [{ name: 'River flow (cubic metres per second)', data: data.data, tooltip: {valueDecimals: 3} ...
+  ... $('#tabMonth').click(function() { if(MonthLoaded === false) { $.getJSON('/data/riverflow/RiverflowData/66401/River+Flow', function (data) { MonthLoaded = true; $('#RiverflowDataMonth').highcharts('StockChart', { t...
+  ... buttons: ChartButtons.rangeDWM }, series: [{ name: 'River flow (cubic metres per second)', data: data.data, tooltip: {valueDecimals: 3} ...
+  ...>Back to listing</a> <a class="button" href="https://data.ecan.govt.nz/Catalogue/Method?MethodId=79&SiteNo=66401#tab-data" target="_blank" rel="external">Data source</a> </div> </div> <footer id="footer" role="contentinfo"> <h2 class="nonvisual-indicator">Footer</h2> <div id="wrap-foot...
+
+=== Data endpoint (ECan data catalogue, method 79) ===
+GET https://data.ecan.govt.nz/data/79/Water/River%20stage%20flow%20data%20for%20individual%20site/CSV?SiteNo=66401&Period=1_Week&StageFlow=River%20Flow
+  -> HTTP 200, 70584 bytes, Content-Type: text/csv; charset=utf-8
+  saved raw response -> tests/smoke/samples/ecan_flow_66401_1week.csv
+lines: 2003
+  'site_no,DateTime,Value'
+  '66401,1/10/2026 11:30:00 PM,99.137'
+  '66401,1/10/2026 11:35:00 PM,99.120'
+  '66401,1/10/2026 11:40:00 PM,99.545'
+  '66401,1/10/2026 11:45:00 PM,99.505'
+  '66401,1/10/2026 11:50:00 PM,98.919'
+  ...
+  '66401,8/10/2026 10:10:00 PM,73.971'
+  '66401,8/10/2026 10:15:00 PM,74.142'
+parsed 2002 (time, flow) points: 2026-10-01 23:30:00 .. 2026-10-08 22:15:00; flow min 73.729, max 99.636
+  (timestamps are printed exactly as given; time zone to be confirmed in the M0 report)
+
+--- Tidal influence check (indicative only) ---
+  sampling step: 5 min; points: 2002
+  correlation of the detrended flow with itself 12.4 h later: -0.46
+  short-term ripple: 0.56 % of mean flow
+  -> no clear ~12.4 h pattern in this week of data
+
+RESULT: PASS - from GitHub Actions: public page readable; data endpoint HTTP 200, 2002 flow points over 6.9 days

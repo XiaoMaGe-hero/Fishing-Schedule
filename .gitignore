@@ -14,3 +14,9 @@ dist/
 
 # macOS
 .DS_Store
+
+# scratch folder for downloads, not part of the project
+temp/
+
+# collector / publish working folder
+out/

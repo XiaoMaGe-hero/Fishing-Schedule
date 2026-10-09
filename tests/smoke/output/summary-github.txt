@@ -1,0 +1,2 @@
+run started 2026-10-08T10:28:10Z | where: github | python 3.12.15 | Linux x86_64
+ecan     RESULT: PASS - from GitHub Actions: public page readable; data endpoint HTTP 200, 2002 flow points over 6.9 days

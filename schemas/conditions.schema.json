@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/XiaoMaGe-hero/Fishing-Schedule/schemas/conditions.schema.json",
+  "title": "conditions/{spot_id}.json",
+  "description": "Hourly conditions for one fishing spot for the next 7 days. Produced by collector.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "spot_id",
+    "tide_reference",
+    "tide_offset_min",
+    "tide_offset_assumed",
+    "hourly",
+    "tide_events",
+    "days"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+      "description": "UTC time, ISO 8601, always with seconds and a trailing Z."
+    },
+    "spot_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Spot id from config/spots.yaml."
+    },
+    "tide_reference": {
+      "type": "string",
+      "description": "LINZ port the tides are based on, e.g. 'lyttelton'."
+    },
+    "tide_offset_min": {
+      "type": "integer",
+      "description": "Minutes added to the reference port's tide times for this spot."
+    },
+    "tide_offset_assumed": {
+      "type": "boolean",
+      "description": "true when spots.yaml has no tide_offset_min for this spot and 0 was used."
+    },
+    "hourly": {
+      "type": "array",
+      "minItems": 168,
+      "maxItems": 168,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "time_utc",
+          "tide_height_m",
+          "tide_phase",
+          "air_temp_c",
+          "precip_prob_pct",
+          "weather_code",
+          "wind_speed_kmh",
+          "wind_gust_kmh",
+          "wind_dir_deg",
+          "wind_relative",
+          "wave_height_m",
+          "swell_height_m",
+          "sea_temp_c",
+          "is_daylight"
+        ],
+        "properties": {
+          "time_utc": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+            "description": "Start of the hour, UTC."
+          },
+          "tide_height_m": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Estimated tide height in metres: cosine interpolation between the neighbouring LINZ high and low tides."
+          },
+          "tide_phase": {
+            "enum": [
+              "rising",
+              "falling",
+              null
+            ],
+            "description": "Whether the tide is coming in or going out during this hour."
+          },
+          "air_temp_c": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Air temperature, deg C (Open-Meteo temperature_2m)."
+          },
+          "precip_prob_pct": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Chance of rain, percent (Open-Meteo precipitation_probability).",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "weather_code": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "WMO weather code (Open-Meteo weather_code).",
+            "minimum": 0,
+            "maximum": 99
+          },
+          "wind_speed_kmh": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Wind speed at 10 m, km/h.",
+            "minimum": 0
+          },
+          "wind_gust_kmh": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Wind gusts at 10 m, km/h.",
+            "minimum": 0
+          },
+          "wind_dir_deg": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Direction the wind comes FROM, degrees, 0 = north, 90 = east.",
+            "minimum": 0,
+            "maximum": 360
+          },
+          "wind_relative": {
+            "enum": [
+              "onshore",
+              "offshore",
+              "cross",
+              null
+            ],
+            "description": "Wind relative to the shore. null when the spot has no shore_facing_deg or the wind direction is missing."
+          },
+          "wave_height_m": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Significant wave height, metres (Open-Meteo wave_height, open-sea grid cell).",
+            "minimum": 0
+          },
+          "swell_height_m": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Swell height, metres (Open-Meteo swell_wave_height).",
+            "minimum": 0
+          },
+          "sea_temp_c": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Sea surface temperature, deg C, exactly as returned by Open-Meteo (no nearshore correction)."
+          },
+          "is_daylight": {
+            "type": "boolean",
+            "description": "true when the hour starts between 60 minutes before sunrise and 60 minutes after sunset."
+          }
+        }
+      },
+      "description": "Exactly 168 consecutive hours, starting with the hour in which the collector ran."
+    },
+    "tide_events": {
+      "type": "array",
+      "description": "Official LINZ high and low tides (offset applied) covering the hourly range.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "time_utc",
+          "type",
+          "height_m"
+        ],
+        "properties": {
+          "time_utc": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+            "description": "UTC time, ISO 8601, always with seconds and a trailing Z."
+          },
+          "type": {
+            "enum": [
+              "high",
+              "low"
+            ]
+          },
+          "height_m": {
+            "type": "number",
+            "description": "Height in metres, as published by LINZ."
+          }
+        }
+      }
+    },
+    "days": {
+      "type": "array",
+      "minItems": 7,
+      "description": "One entry per local calendar day touched by the hourly range.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "date_local",
+          "sunrise_utc",
+          "sunset_utc",
+          "moon_phase"
+        ],
+        "properties": {
+          "date_local": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "Calendar date in Pacific/Auckland."
+          },
+          "sunrise_utc": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+            "description": "UTC time, ISO 8601, always with seconds and a trailing Z."
+          },
+          "sunset_utc": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+            "description": "UTC time, ISO 8601, always with seconds and a trailing Z."
+          },
+          "moon_phase": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMaximum": 1,
+            "description": "Fraction of the lunar cycle: 0 = new moon, 0.25 = first quarter, 0.5 = full moon, 0.75 = last quarter."
+          }
+        }
+      }
+    }
+  }
+}

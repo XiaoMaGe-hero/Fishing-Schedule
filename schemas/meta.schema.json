@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/XiaoMaGe-hero/Fishing-Schedule/schemas/meta.schema.json",
+  "title": "meta.json",
+  "description": "Health of each data source. Produced by collector.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "sources"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+      "description": "UTC time, ISO 8601, always with seconds and a trailing Z."
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "linz_tides",
+        "open_meteo_forecast",
+        "open_meteo_marine",
+        "ecan_flow"
+      ],
+      "properties": {
+        "linz_tides": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "last_success_utc",
+            "last_attempt_utc",
+            "error"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "ok",
+                "failed"
+              ],
+              "description": "Result of the most recent attempt."
+            },
+            "last_success_utc": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+              "description": "When this source last succeeded; null if it never has. The site uses it for 'updated X hours ago'."
+            },
+            "last_attempt_utc": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+              "description": "UTC time, ISO 8601, always with seconds and a trailing Z."
+            },
+            "error": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Short error text when status is 'failed', otherwise null."
+            }
+          }
+        },
+        "open_meteo_forecast": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "last_success_utc",
+            "last_attempt_utc",
+            "error"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "ok",
+                "failed"
+              ],
+              "description": "Result of the most recent attempt."
+            },
+            "last_success_utc": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+              "description": "When this source last succeeded; null if it never has. The site uses it for 'updated X hours ago'."
+            },
+            "last_attempt_utc": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+              "description": "UTC time, ISO 8601, always with seconds and a trailing Z."
+            },
+            "error": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Short error text when status is 'failed', otherwise null."
+            }
+          }
+        },
+        "open_meteo_marine": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "last_success_utc",
+            "last_attempt_utc",
+            "error"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "ok",
+                "failed"
+              ],
+              "description": "Result of the most recent attempt."
+            },
+            "last_success_utc": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+              "description": "When this source last succeeded; null if it never has. The site uses it for 'updated X hours ago'."
+            },
+            "last_attempt_utc": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+              "description": "UTC time, ISO 8601, always with seconds and a trailing Z."
+            },
+            "error": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Short error text when status is 'failed', otherwise null."
+            }
+          }
+        },
+        "ecan_flow": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "last_success_utc",
+            "last_attempt_utc",
+            "error"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "ok",
+                "failed"
+              ],
+              "description": "Result of the most recent attempt."
+            },
+            "last_success_utc": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+              "description": "When this source last succeeded; null if it never has. The site uses it for 'updated X hours ago'."
+            },
+            "last_attempt_utc": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+              "description": "UTC time, ISO 8601, always with seconds and a trailing Z."
+            },
+            "error": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Short error text when status is 'failed', otherwise null."
+            }
+          }
+        }
+      },
+      "description": "One entry per data source."
+    }
+  }
+}

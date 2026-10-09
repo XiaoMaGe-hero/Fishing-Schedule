@@ -1,0 +1,47 @@
+# Collect conditions every 3 hours and publish them to Supabase.
+# This file must live at .github/workflows/collect.yml to take effect
+# (see COMMANDS.md, section 8, for the copy command).
+name: Collect
+
+on:
+  schedule:
+    - cron: "17 */3 * * *"   # every 3 hours, at minute 17 (UTC)
+  workflow_dispatch:
+    inputs:
+      force_fail:
+        description: "Acceptance test only: make one source fail (linz_tides, open_meteo_forecast, open_meteo_marine, ecan_flow)"
+        required: false
+        default: ""
+      break_output:
+        description: "Acceptance test only: type 1 to write an output file that breaks the schema"
+        required: false
+        default: ""
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Fetch last run's state
+        run: python -m publish.run pull --out out
+      - name: Collect
+        env:
+          FISHING_FORCE_FAIL: ${{ inputs.force_fail }}
+          FISHING_BREAK_OUTPUT: ${{ inputs.break_output }}
+        run: python -m collector.run --out out
+      - name: Validate and publish
+        run: python -m publish.run push --out out
