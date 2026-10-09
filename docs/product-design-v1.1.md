@@ -398,13 +398,13 @@ collector 每 3 小时自动运行一次，产出第 5 节定义的 `conditions/
 | 验收项 | 结果 | 实测证据 |
 | --- | --- | --- |
 | 1 连续 3 次成功 | 待填 | 待填 |
-| 2 Schema 校验与覆盖范围 | 待填 | 待填 |
-| 3 潮汐与官方值一致 | 待填 | 待填 |
-| 4 天气值与水温一致 | 待填 | 待填 |
-| 5 单源失败隔离 | 待填 | 待填 |
-| 6 重复运行不产生重复行 | 待填 | 待填 |
-| 7 校验失败不覆盖 | 待填 | 待填 |
-| 8 UTC 与夏令时切换 | 待填 | 待填 |
+| 2 Schema 校验与覆盖范围 | 通过（2026-10-10） | Schema 和建表 SQL 已于 2026-10-09 经 Liang 确认。GitHub Actions 日志显示 `push: 4 output files are valid`；两个钓点各 168 个连续小时，无空值（Southshore 的 `wind_relative` 因岸线朝向未填而为空）。`tests/acceptance/output/20261009T105403Z.txt` |
+| 3 潮汐与官方值一致 | 通过（2026-10-10） | 已发布的 29 个潮与 LINZ 文件分钟级一致、高度相同；10 月 10 日的 10:58、17:03、23:19 与文件原始行逐一对上。`tests/acceptance/output/20261009T105403Z.txt` |
+| 4 天气值与水温一致 | 通过（2026-10-10） | 两个钓点各 3 个小时的气温、风速、风向、水温共 24 个值，与 Open-Meteo 直接返回的值全部相等（发布后 1 分钟检查）。`tests/acceptance/output/20261009T105403Z.txt` |
+| 5 单源失败隔离 | 通过（2026-10-10） | 人为让 `ecan_flow` 失败：`meta.json` 标记它为 failed 并保留上次成功时间 11:11:11Z，其余三个来源 ok 且文件更新到 11:13:38Z，流量序列保留上次的数据。`tests/acceptance/output/c.txt` |
+| 6 重复运行不产生重复行 | 通过（2026-10-10） | 同一小时内两次独立运行（11:03:09Z、11:04:34Z）之后，历史表都是 338 行。`tests/acceptance/output/b1.txt`、`tests/acceptance/output/b2.txt` |
+| 7 校验失败不覆盖 | 通过（2026-10-10） | 人为产出缺少 `spot_id` 的文件：GitHub Actions 的发布步骤输出 `push: output does NOT match the schemas - nothing was uploaded` 并以错误退出（exit code 1，日志由 Liang 提供）；之后检查，四个已发布文件的生成时间仍是 11:13:38Z，历史表未变。`tests/acceptance/output/d.txt` |
+| 8 UTC 与夏令时切换 | 通过（2026-10-10） | 已发布文件的全部时间字段为 UTC（`tests/acceptance/output/20261009T105403Z.txt`）。夏令时切换日按约定用单元测试验收：`tests/unit/test_run.py` 的 `test_daylight_saving_change_inside_the_week`（2026-04-05、2026-09-27）和 `test_sources.py` 的 `test_linz_no_jump_across_daylight_saving_changes` 通过，全部 44 个测试通过。 |
 
 - 完成日期：待填
 - 变更记录：2026-10-08，Liang 同意。（1）上传和写表改由独立的 publish 步骤完成；（2）完整 Schema 和建表 SQL 列为本里程碑第一项交付，并入验收第 2 项；（3）验收第 8 项的夏令时切换日部分改用单元测试验收。原因见第 13 节。2026-10-09，Liang 同意：验收第 4 项增加水温，水温也要和数据源一致。2026-10-09，Liang 确认完整的 JSON Schema（`schemas/` 下三个文件）和 `conditions_hourly` 建表 SQL，包括六处补充：潮时偏移的三个标注字段、小时数固定为 168、月相用 0 到 1 的小数、流量保留 5 分钟一个点、`meta.json` 固定四个数据源、历史表的写入规则。自此这些成为契约。

@@ -97,7 +97,7 @@
 - 运行目录：项目根目录
 - 前置条件：Supabase 项目已按第 8 节准备好；`SUPABASE_SERVICE_KEY` 是密钥，只放在环境变量里，不要写进任何文件
 - 预期结果：三行 `push:`，分别报告校验通过、上传的文件数、`conditions_hourly` 写入的行数（两个钓点共 336 行）。
-- 记录：2026-10-09，M1。**还没有实际运行过**，要等 Supabase 项目建好。
+- 记录：2026-10-09，M1。这条命令在 GitHub Actions 上运行成功（写入 336 行）；在本机还没运行过。
 
 ### 取回上一次运行保存的状态
 - 命令：`SUPABASE_URL=<项目地址> SUPABASE_SERVICE_KEY=$SUPABASE_SERVICE_KEY python3 -m publish.run pull --out out`
@@ -119,6 +119,13 @@
 - 预期结果：最后一行 `44 passed`。
 - 记录：2026-10-09，M1。在开发环境（Python 3.13）运行过；Liang 的 Mac 上还没运行过。
 
+### 检查已发布的数据（M1 验收用）
+- 命令：`python3 tests/acceptance/check_m1.py <标签>`，例如 `python3 tests/acceptance/check_m1.py baseline`
+- 运行目录：项目根目录
+- 前置条件：已安装依赖；项目根目录下有一个 `.env` 文件（不会被提交），内容两行：`SUPABASE_URL=https://<项目>.supabase.co` 和 `SUPABASE_ANON_KEY=<anon public 密钥>`。anon 密钥在 Supabase 的 Project Settings → API 里，它本来就是公开的；**不要**把 service_role 密钥放进 `.env`。
+- 预期结果：打印已发布文件的生成时间、覆盖范围、潮汐与 LINZ 文件的对照、三个小时的数值与 Open-Meteo 直接返回值的对照、各数据源状态、历史表行数，最后是 summary。输出同时保存到 `tests/acceptance/output/<标签>.txt`。第 4 项要在一次 Collect 运行结束后马上检查，隔久了 Open-Meteo 会更新预报，数值就对不上。
+- 记录：2026-10-09，M1。脚本逻辑用保存的样本离线检查过；**还没有对着真实的 Supabase 运行过**。
+
 ## 8. 部署与定时任务
 
 ### 准备 Supabase 项目（网页操作，只做一次）
@@ -131,14 +138,14 @@
 - 运行目录：无
 - 前置条件：有 Supabase 账号，免费档的两个项目名额还有空位
 - 预期结果：SQL 运行后显示 `Success. No rows returned`；Table Editor 里出现 `conditions_hourly` 表；Storage 里出现 `fishing-data` 桶。
-- 记录：2026-10-09，M1。**还没有实际做过**，SQL 也还没有在真实数据库上执行过。
+- 记录：2026-10-09，M1。Liang 已做完，随后的发布成功写入了数据。
 
 ### 把采集任务的工作流文件放到 GitHub 要求的位置
 - 命令：`cp docs/workflows/collect.yml .github/workflows/collect.yml`
 - 运行目录：项目根目录
 - 前置条件：Supabase 已准备好、两个 secret 已添加，否则定时任务每次都会失败。只需做一次；以后改了 `docs/workflows/collect.yml` 要重新复制。
 - 预期结果：没有输出。提交并推送后，GitHub 的 Actions 页面出现 “Collect”，之后每 3 小时自动运行一次，也可以点 Run workflow 手动运行。
-- 记录：2026-10-09，M1。**还没有实际用过**。
+- 记录：2026-10-09，M1。已使用，“Collect” 工作流手动运行成功。
 
 ### 第一次把项目推送到 GitHub
 - 命令：
