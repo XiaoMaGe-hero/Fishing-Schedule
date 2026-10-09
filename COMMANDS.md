@@ -116,7 +116,7 @@
 - 命令：`python3 -m pytest tests/unit -q`
 - 运行目录：项目根目录
 - 前置条件：已安装依赖。不需要网络，测试用的是 `tests/smoke/samples/` 里保存的真实返回。
-- 预期结果：最后一行 `43 passed`。
+- 预期结果：最后一行 `44 passed`。
 - 记录：2026-10-09，M1。在开发环境（Python 3.13）运行过；Liang 的 Mac 上还没运行过。
 
 ## 8. 部署与定时任务
@@ -181,3 +181,10 @@
 - 原因：接口返回的时间格式是 `8/10/2026 10:00:00 PM`（12 小时制），脚本原先不认识。
 - 解决办法：已在 `smoke_ecan.py` 的 `DATE_FORMATS` 里加入 `%d/%m/%Y %I:%M:%S %p`。
 - 记录：2026-10-08，M0
+
+
+### 发布时上传失败：HTTP 404 PGRST125 "Invalid path specified in request URL"
+- 现象：GitHub Actions 的 “Validate and publish” 一步报 `upload of conditions/... failed: HTTP 404 ... PGRST125`。
+- 原因：`SUPABASE_URL` 里带了 `/rest/v1/` 这段路径（Supabase 后台有一处显示的地址带这个后缀），请求被发到了数据库接口而不是存储接口。
+- 解决办法：`publish/run.py` 现在会自动去掉地址里的路径，只保留 `https://<项目>.supabase.co`，secret 不用改。另外，取回状态时如果列不出桶的内容，现在会直接报错，不再悄悄跳过。
+- 记录：2026-10-09，M1

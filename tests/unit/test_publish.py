@@ -88,3 +88,14 @@ def test_hourly_flow_is_the_mean_of_the_readings_in_that_hour(collected):
     readings = [p["flow_m3s"] for p in series if p["time_utc"].startswith("2026-10-08T09:")]
     assert len(readings) == 12
     assert publish.hourly_flow_means(out)["2026-10-08T09:00:00Z"] == round(sum(readings) / 12, 3)
+
+
+def test_supabase_url_is_reduced_to_the_project_address():
+    """A URL pasted with '/rest/v1/' made every upload fail with HTTP 404 PGRST125 (first real run, 2026-10-09)."""
+    import pytest
+    for pasted in ("https://abcd1234.supabase.co", "https://abcd1234.supabase.co/",
+                   "https://abcd1234.supabase.co/rest/v1/", " https://abcd1234.supabase.co/rest/v1\n"):
+        assert publish.project_base_url(pasted) == "https://abcd1234.supabase.co"
+    for bad in ("", "abcd1234.supabase.co", "abcd1234"):
+        with pytest.raises(SystemExit):
+            publish.project_base_url(bad)

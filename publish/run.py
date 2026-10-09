@@ -25,7 +25,7 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 from jsonschema import Draft202012Validator
 
@@ -122,13 +122,28 @@ def history_rows(out_dir: Path, now: datetime) -> tuple[list[dict], list[dict]]:
 
 # --- Supabase -------------------------------------------------------------
 
+def project_base_url(value: str) -> str:
+    """Reduce whatever was pasted as SUPABASE_URL to 'https://<project>.supabase.co'.
+
+    The Supabase dashboard also shows the address with '/rest/v1/' on the end.
+    With that suffix every request lands on the database API instead of the
+    storage API and fails with HTTP 404 PGRST125, so any path is dropped here.
+    """
+    parts = urlsplit(value.strip())
+    if parts.scheme not in ("http", "https") or not parts.netloc:
+        raise SystemExit("SUPABASE_URL must look like https://<project>.supabase.co")
+    return f"{parts.scheme}://{parts.netloc}"
+
+
 class Supabase:
     def __init__(self) -> None:
         try:
-            self.url = os.environ["SUPABASE_URL"].rstrip("/")
-            self.key = os.environ["SUPABASE_SERVICE_KEY"]
+            self.url = project_base_url(os.environ["SUPABASE_URL"])
+            self.key = os.environ["SUPABASE_SERVICE_KEY"].strip()
         except KeyError as exc:
             raise SystemExit(f"environment variable {exc} is not set") from None
+        if not self.key:
+            raise SystemExit("SUPABASE_SERVICE_KEY is empty")
         self.bucket = os.environ.get("SUPABASE_BUCKET", "fishing-data")
 
     def _request(self, method: str, path: str, body: bytes | None = None, headers: dict | None = None) -> tuple[int, bytes]:
@@ -148,7 +163,12 @@ class Supabase:
         status, body = self._request("POST", f"/storage/v1/object/list/{self.bucket}",
                                      json.dumps({"prefix": prefix, "limit": 100}).encode(),
                                      {"Content-Type": "application/json"})
-        return [item["name"] for item in json.loads(body)] if status == 200 else []
+        if status != 200:
+            # An existing bucket answers 200 even when the folder is empty, so anything
+            # else means the URL, the key or the bucket name is wrong. Stop here rather
+            # than run on without the previous state.
+            raise RuntimeError(f"cannot list bucket '{self.bucket}': HTTP {status} {body[:200]!r}")
+        return [item["name"] for item in json.loads(body)]
 
     def upload(self, remote: str, body: bytes, content_type: str) -> None:
         status, answer = self._request("POST", f"/storage/v1/object/{self.bucket}/{quote(remote)}", body, {
