@@ -81,7 +81,33 @@
 
 ## 4. 评分（scorer）
 
-（暂无）
+### 对已采集的数据评分
+- 命令：`python3 -m scorer.run --out out`
+- 运行目录：项目根目录
+- 前置条件：已运行过采集，`out/` 下有文件。不需要网络。
+- 预期结果：每个钓点一行，报告推荐时段的个数和最好的一个；最后一行 `scorer: wrote out/recommendations.json (ruleset_version N)`。如果规则或参数改了而版本号没改，会报错并停止（见下面“检查版本号”）。
+- 记录：2026-10-10，M2。在开发环境用 Liang 电脑上 10 月 9 日采集的真实数据运行过。
+
+### 查看某个小时的分数是怎么算出来的
+- 命令：`python3 -m scorer.explain --spot new-brighton-pier --time "2026-10-11 07:00" --local --out out`
+- 运行目录：项目根目录
+- 前置条件：同上。`--local` 表示时间是新西兰钟面时间；不加 `--local` 时要写成 UTC，例如 `--time 2026-10-10T18:00:00Z`。时间必须在 `out/` 里那份数据覆盖的 7 天之内。
+- 预期结果：一张表，每条规则一行：得分（0 到 1）、权重、用到的输入值、一句理由；然后是加权总分；有安全否决时列出 `VETO:` 和原因；最后是最终分数。
+- 记录：2026-10-10，M2。在开发环境运行过。
+
+### 改了规则或参数之后：检查并登记版本号
+- 命令：先把 `config/scoring.yaml` 里的 `ruleset_version` 加 1，然后运行 `python3 -m scorer.version --update`。只想检查不想改时运行 `python3 -m scorer.version`。
+- 运行目录：项目根目录
+- 前置条件：无
+- 预期结果：`--update` 显示 `recorded ruleset_version N`，并更新 `scorer/ruleset.lock`（这个文件要提交）。检查时一致则显示 `ruleset_version N matches the rules and settings`。改了 `scorer/rules/` 下的文件、`config/scoring.yaml`，或 `config/spots.yaml` 里的 `allow_night`、`best_tide_window_min`、`max_gust_kmh`、`max_wave_m` 而没有加版本号，会显示 `... changed, but ruleset_version is still N` 并以错误退出。改钓点的 `name`、`notes`、注释不需要加版本号。
+- 记录：2026-10-10，M2。在开发环境运行过，包括报错的情况。
+
+### 新增一条规则
+- 命令：在 `scorer/rules/` 下新建一个 `.py` 文件，写法见 `scorer/api.py` 开头的例子；在 `config/scoring.yaml` 的 `weights:` 下给它加一个权重；然后按上一条登记版本号。
+- 运行目录：项目根目录
+- 前置条件：无
+- 预期结果：不用改引擎。重新运行评分后，新规则出现在每个推荐时段的理由里，也出现在 `scorer.explain` 的输出里。忘了加权重时，评分会报错并说明缺哪个权重。
+- 记录：2026-10-10，M2。由单元测试覆盖；还没有人手工做过。
 
 ## 5. 发布（publish）
 
@@ -116,7 +142,7 @@
 - 命令：`python3 -m pytest tests/unit -q`
 - 运行目录：项目根目录
 - 前置条件：已安装依赖。不需要网络，测试用的是 `tests/smoke/samples/` 里保存的真实返回。
-- 预期结果：最后一行 `44 passed`。
+- 预期结果：最后一行 `72 passed`。
 - 记录：2026-10-09，M1。在开发环境（Python 3.13）运行过；Liang 的 Mac 上还没运行过。
 
 ### 检查已发布的数据（M1 验收用）
@@ -140,10 +166,17 @@
 - 预期结果：SQL 运行后显示 `Success. No rows returned`；Table Editor 里出现 `conditions_hourly` 表；Storage 里出现 `fishing-data` 桶。
 - 记录：2026-10-09，M1。Liang 已做完，随后的发布成功写入了数据。
 
+### 查看定时任务这次会不会采集
+- 命令：`SUPABASE_URL=<项目地址> SUPABASE_SERVICE_KEY=$SUPABASE_SERVICE_KEY python3 -m publish.run due --min-minutes 170`
+- 运行目录：项目根目录
+- 前置条件：同“校验并发布到 Supabase”
+- 预期结果：一行 `due: collect - last published N min ago ...` 或 `due: skip - last published only N min ago ...`。工作流里定时触发的运行靠它决定是否采集；手动触发的运行带 `--force`，总是采集。想改采集间隔，就改 `docs/workflows/collect.yml` 里的 `--min-minutes 170`，然后重新复制工作流文件。
+- 记录：2026-10-10，M1。判断逻辑由单元测试覆盖；命令本身还没有对着真实的 Supabase 运行过。
+
 ### 把采集任务的工作流文件放到 GitHub 要求的位置
 - 命令：`cp docs/workflows/collect.yml .github/workflows/collect.yml`
 - 运行目录：项目根目录
-- 前置条件：Supabase 已准备好、两个 secret 已添加，否则定时任务每次都会失败。只需做一次；以后改了 `docs/workflows/collect.yml` 要重新复制。
+- 前置条件：Supabase 已准备好、两个 secret 已添加，否则定时任务每次都会失败。每次 `docs/workflows/collect.yml` 有改动都要重新复制一次（2026-10-10 加了评分步骤，需要重新复制）。
 - 预期结果：没有输出。提交并推送后，GitHub 的 Actions 页面出现 “Collect”，之后每 3 小时自动运行一次，也可以点 Run workflow 手动运行。
 - 记录：2026-10-09，M1。已使用，“Collect” 工作流手动运行成功。
 
@@ -195,3 +228,10 @@
 - 原因：`SUPABASE_URL` 里带了 `/rest/v1/` 这段路径（Supabase 后台有一处显示的地址带这个后缀），请求被发到了数据库接口而不是存储接口。
 - 解决办法：`publish/run.py` 现在会自动去掉地址里的路径，只保留 `https://<项目>.supabase.co`，secret 不用改。另外，取回状态时如果列不出桶的内容，现在会直接报错，不再悄悄跳过。
 - 记录：2026-10-09，M1
+
+### 定时任务没有按时运行，或者隔很久才运行一次
+- 现象：Actions 页面里 “Scheduled” 的运行比预期少得多。2026-10-09 到 10-10，每 3 小时一次的设定在约 22 小时里只执行了 2 次（相隔 6.5 小时），其余没有任何记录，也没有报错。
+- 原因：GitHub 的定时任务不保证准时，负载高时会延迟，也会直接丢弃。
+- 解决办法：工作流改为每小时触发一次（`cron: "17 * * * *"`），由 “Is it time?” 这一步判断：距上次发布不满 170 分钟就跳过。跳过的运行显示为绿色，耗时很短，后面几步是灰色的。如果改完以后间隔还是太长，下一步是用外部定时服务调用 GitHub 接口来触发。
+- 记录：2026-10-10，M1
+

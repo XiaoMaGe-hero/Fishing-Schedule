@@ -1,10 +1,10 @@
 # AGENTS.md — Liang's Fishing Schedule 开发控制文件
 
-在本项目工作的任何 agent，每次会话开始时先读完本文件和 `docs/product-design-v1.1.md`，再动手。
+在本项目工作的任何 agent，每次会话开始时先读完本文件和 `docs/product-design-v1.2.md`，再动手。
 
 ## 1. 依据
 
-- `docs/product-design-v1.1.md` 是唯一的需求依据（当前版本；旧版本保留在 `docs/` 下，只作存档），其中“开发规则（必须遵守）”的六条全部生效。
+- `docs/product-design-v1.2.md` 是唯一的需求依据（当前版本；旧版本保留在 `docs/` 下，只作存档），其中“开发规则（必须遵守）”的六条全部生效。
 - 本文件与产品设计冲突时，以产品设计为准，并停下来告诉 Liang。
 - 当前进度看产品设计第 10 节各里程碑的“验收结果”。里程碑按顺序做，上一个经 Liang 确认后才开始下一个。
 

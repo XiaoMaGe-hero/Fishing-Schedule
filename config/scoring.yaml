@@ -1,0 +1,37 @@
+# Scoring settings. Change a number here to change the recommendations.
+#
+# After ANY change to this file, to a file in scorer/rules/, or to the scoring
+# settings of a spot in spots.yaml: raise ruleset_version by 1, then run
+#     python3 -m scorer.version --update
+# The scorer refuses to run while a change has no new version number.
+ruleset_version: 1
+
+# How much each rule counts. Only the proportions matter.
+# A rule that is skipped for an hour (missing data or missing spot setting)
+# drops out and the others share its weight.
+weights:
+  tide: 3
+  wind: 3
+  wave: 2
+  rain: 1
+  light: 1
+
+# Hours scoring at least min_score are joined into recommended windows.
+window:
+  min_score: 60          # 0-100
+  min_hours: 2           # shortest window; data is hourly, so 2 hours covers the 1.5 h minimum
+  high_confidence_hours: 72   # windows starting later than this are marked "low" confidence
+
+# Settings of the individual rules.
+rules:
+  tide:
+    falloff_min: 120     # outside the spot's best window the score falls to 0 over this many minutes
+  wind:
+    calm_kmh: 10         # at or below this wind speed the score is full
+    strong_kmh: 35       # at or above this wind speed the score is 0
+    offshore_bonus: 0.15
+    onshore_penalty: 0.15
+  light:
+    window_min: 60       # minutes either side of sunrise and sunset that score 1.0
+    day_score: 0.5       # the rest of the day
+    night_score: 0.0

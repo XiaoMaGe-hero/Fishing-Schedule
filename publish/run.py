@@ -1,5 +1,6 @@
 """Publish step: the only part of the pipeline that talks to Supabase.
 
+    python -m publish.run due --min-minutes 170   # scheduled runs: is it time to collect again?
     python -m publish.run pull --out out      # before collector: fetch last run's state
     python -m publish.run push --out out      # after collector: validate, upload, write history
     python -m publish.run push --out out --dry-run   # validate only, no network
@@ -13,12 +14,14 @@ Needs these environment variables (not for --dry-run):
     SUPABASE_SERVICE_KEY   the service_role key - a secret, never commit it
     SUPABASE_BUCKET        optional, default "fishing-data"
 
-No collecting and no scoring logic lives here.
+No collecting and no scoring logic lives here: scores are copied from
+recommendations.json exactly as the scorer wrote them.
 """
 from __future__ import annotations
 
 import argparse
 import json
+from math import fsum
 import os
 import sys
 import urllib.error
@@ -55,6 +58,8 @@ def output_files(out_dir: Path) -> list[tuple[Path, str, str]]:
     files = [(p, f"conditions/{p.name}", "conditions") for p in sorted((out_dir / "conditions").glob("*.json"))]
     files.append((out_dir / "river_flow.json", "river_flow.json", "river_flow"))
     files.append((out_dir / "meta.json", "meta.json", "meta"))
+    if (out_dir / "recommendations.json").exists():      # written by the scorer (from M2 on)
+        files.append((out_dir / "recommendations.json", "recommendations.json", "recommendations"))
     return files
 
 
@@ -89,7 +94,17 @@ def hourly_flow_means(out_dir: Path) -> dict[str, float]:
     for point in series:
         if point["flow_m3s"] is not None:
             buckets.setdefault(point["time_utc"][:13] + ":00:00Z", []).append(point["flow_m3s"])
-    return {hour: round(sum(v) / len(v), 3) for hour, v in buckets.items()}
+    return {hour: round(fsum(v) / len(v), 3) for hour, v in buckets.items()}
+
+
+def hourly_scores(out_dir: Path) -> tuple[dict | None, int | None]:
+    """({(spot_id, hour): score}, ruleset_version) from recommendations.json, or (None, None) if there is none."""
+    path = out_dir / "recommendations.json"
+    if not path.exists():
+        return None, None
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    scores = {(spot["spot_id"], hour["time_utc"]): hour["score"] for spot in doc["spots"] for hour in spot["hourly"]}
+    return scores, doc["ruleset_version"]
 
 
 def history_rows(out_dir: Path, now: datetime) -> tuple[list[dict], list[dict]]:
@@ -101,6 +116,7 @@ def history_rows(out_dir: Path, now: datetime) -> tuple[list[dict], list[dict]]:
     current_hour = now.replace(minute=0, second=0, microsecond=0)
     flow = hourly_flow_means(out_dir)
     stamp = _iso(now)
+    scores, ruleset_version = hourly_scores(out_dir)
     full_rows = []
     for path in sorted((out_dir / "conditions").glob("*.json")):
         doc = json.loads(path.read_text(encoding="utf-8"))
@@ -110,6 +126,9 @@ def history_rows(out_dir: Path, now: datetime) -> tuple[list[dict], list[dict]]:
             row = {"spot_id": doc["spot_id"], "time_utc": hour["time_utc"]}
             row.update({c: hour[c] for c in CONDITION_COLUMNS})
             row["river_flow_m3s"] = flow.get(hour["time_utc"])
+            if scores is not None:               # without scorer output the score columns are left untouched
+                row["score"] = scores.get((doc["spot_id"], hour["time_utc"]))
+                row["ruleset_version"] = ruleset_version
             row["updated_at"] = stamp
             full_rows.append(row)
     flow_updates = []
@@ -197,6 +216,37 @@ class Supabase:
 
 # --- commands -------------------------------------------------------------
 
+def is_due(last_generated_at: str | None, now: datetime, min_minutes: int) -> tuple[bool, str]:
+    """Should a scheduled run collect now? (decision, explanation)
+
+    GitHub starts scheduled workflows late and silently drops many of them, so
+    the workflow is triggered every hour and this check keeps the real pace at
+    about one collection every 3 hours (and the load on the data sources low).
+    """
+    if last_generated_at is None:
+        return True, "nothing has been published yet"
+    age = (now - _parse(last_generated_at)).total_seconds() / 60
+    if age >= min_minutes:
+        return True, f"last published {age:.0f} min ago (at least {min_minutes} min)"
+    return False, f"last published only {age:.0f} min ago (less than {min_minutes} min) - skipping this run"
+
+
+def due(client: Supabase, min_minutes: int, force: bool, now: datetime | None = None) -> int:
+    """Print the decision; inside GitHub Actions also expose it as the step output `run`."""
+    if force:
+        decision, why = True, "started by hand - always runs"
+    else:
+        body = client.download("meta.json")
+        last = json.loads(body).get("generated_at") if body else None
+        decision, why = is_due(last, (now or datetime.now(UTC)).astimezone(UTC), min_minutes)
+    print(f"due: {'collect' if decision else 'skip'} - {why}")
+    output = os.environ.get("GITHUB_OUTPUT")
+    if output:
+        with open(output, "a", encoding="utf-8") as fh:
+            fh.write(f"run={'true' if decision else 'false'}\n")
+    return 0
+
+
 def pull(out_dir: Path, client: Supabase) -> int:
     """Download the previous run's state so a failing source can fall back on it."""
     state_dir = out_dir / "state"
@@ -248,11 +298,15 @@ def push(out_dir: Path, client: Supabase | None, now: datetime | None = None) ->
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Publish collector output to Supabase.")
-    parser.add_argument("command", choices=["pull", "push"])
+    parser.add_argument("command", choices=["due", "pull", "push"])
+    parser.add_argument("--min-minutes", type=int, default=170, help="due: shortest gap between two collections")
+    parser.add_argument("--force", action="store_true", help="due: always answer 'collect'")
     parser.add_argument("--out", default="out", help="output folder (default: out)")
     parser.add_argument("--dry-run", action="store_true", help="push: validate only, no network")
     args = parser.parse_args(argv)
     out_dir = Path(args.out)
+    if args.command == "due":
+        return due(Supabase(), args.min_minutes, args.force)
     if args.command == "pull":
         return pull(out_dir, Supabase())
     return push(out_dir, None if args.dry_run else Supabase())

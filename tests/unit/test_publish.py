@@ -87,7 +87,7 @@ def test_hourly_flow_is_the_mean_of_the_readings_in_that_hour(collected):
     series = json.loads((out / "river_flow.json").read_text())["series"]
     readings = [p["flow_m3s"] for p in series if p["time_utc"].startswith("2026-10-08T09:")]
     assert len(readings) == 12
-    assert publish.hourly_flow_means(out)["2026-10-08T09:00:00Z"] == round(sum(readings) / 12, 3)
+    assert publish.hourly_flow_means(out)["2026-10-08T09:00:00Z"] == round(__import__("math").fsum(readings) / 12, 3)
 
 
 def test_supabase_url_is_reduced_to_the_project_address():
@@ -99,3 +99,29 @@ def test_supabase_url_is_reduced_to_the_project_address():
     for bad in ("", "abcd1234.supabase.co", "abcd1234"):
         with pytest.raises(SystemExit):
             publish.project_base_url(bad)
+
+
+def test_scheduled_runs_collect_only_when_enough_time_has_passed():
+    """GitHub drops scheduled runs, so the workflow fires hourly and this check sets the real pace."""
+    now = datetime(2026, 10, 10, 9, 17, tzinfo=UTC)
+    assert publish.is_due(None, now, 170)[0] is True                               # first run ever
+    assert publish.is_due("2026-10-10T08:17:30Z", now, 170)[0] is False            # 1 h ago
+    assert publish.is_due("2026-10-10T07:17:30Z", now, 170)[0] is False            # 2 h ago
+    assert publish.is_due("2026-10-10T06:17:40Z", now, 170)[0] is True             # 3 h ago, a few seconds short
+    assert publish.is_due("2026-10-10T00:47:00Z", now, 170)[0] is True             # a dropped stretch
+    assert "skipping" in publish.is_due("2026-10-10T08:17:30Z", now, 170)[1]
+
+
+def test_due_reports_its_decision_to_github(tmp_path, monkeypatch, capsys):
+    class Bucket:
+        def __init__(self, meta): self.meta = meta
+        def download(self, remote): return self.meta
+    out = tmp_path / "github_output"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(out))
+    now = datetime(2026, 10, 10, 9, 17, tzinfo=UTC)
+    recent = json.dumps({"generated_at": "2026-10-10T08:30:00Z"}).encode()
+    publish.due(Bucket(recent), 170, force=False, now=now)
+    publish.due(Bucket(recent), 170, force=True, now=now)                           # a manual run ignores the gap
+    publish.due(Bucket(None), 170, force=False, now=now)                            # nothing published yet
+    assert out.read_text().splitlines() == ["run=false", "run=true", "run=true"]
+    assert "due: skip" in capsys.readouterr().out

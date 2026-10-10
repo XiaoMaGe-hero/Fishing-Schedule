@@ -1,11 +1,17 @@
-# Collect conditions every 3 hours and publish them to Supabase.
+# Collect conditions about every 3 hours, score them, and publish everything to Supabase.
 # This file must live at .github/workflows/collect.yml to take effect
 # (see COMMANDS.md, section 8, for the copy command).
+#
+# Why it fires every hour: GitHub starts scheduled workflows late and drops
+# many of them (2 of about 8 ran in the first day). So it is triggered hourly,
+# and the "Is it time?" step skips the run unless at least 170 minutes have
+# passed since the last publish. The data sources are still asked about once
+# every 3 hours. Runs started by hand always go ahead.
 name: Collect
 
 on:
   schedule:
-    - cron: "17 */3 * * *"   # every 3 hours, at minute 17 (UTC)
+    - cron: "17 * * * *"   # every hour, at minute 17 (UTC)
   workflow_dispatch:
     inputs:
       force_fail:
@@ -36,12 +42,21 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - name: Is it time?
+        id: due
+        run: python -m publish.run due --min-minutes 170 ${{ github.event_name != 'schedule' && '--force' || '' }}
       - name: Fetch last run's state
+        if: steps.due.outputs.run == 'true'
         run: python -m publish.run pull --out out
       - name: Collect
+        if: steps.due.outputs.run == 'true'
         env:
           FISHING_FORCE_FAIL: ${{ inputs.force_fail }}
           FISHING_BREAK_OUTPUT: ${{ inputs.break_output }}
         run: python -m collector.run --out out
+      - name: Score
+        if: steps.due.outputs.run == 'true'
+        run: python -m scorer.run --out out
       - name: Validate and publish
+        if: steps.due.outputs.run == 'true'
         run: python -m publish.run push --out out
