@@ -96,7 +96,7 @@
 - 记录：2026-10-10，M2。在开发环境运行过。
 
 ### 改了规则或参数之后：检查并登记版本号
-- 命令：先把 `config/scoring.yaml` 里的 `ruleset_version` 加 1，然后运行 `python3 -m scorer.version --update`。只想检查不想改时运行 `python3 -m scorer.version`。
+- 命令：先把 `config/scoring.yaml` 里的 `ruleset_version` 加 1，然后运行 `python3 -m scorer.version --update`，再更新 `docs/scoring-logic.md`（“当前参数”一节和文末的修改记录）。只想检查不想改时运行 `python3 -m scorer.version`。
 - 运行目录：项目根目录
 - 前置条件：无
 - 预期结果：`--update` 显示 `recorded ruleset_version N`，并更新 `scorer/ruleset.lock`（这个文件要提交）。检查时一致则显示 `ruleset_version N matches the rules and settings`。改了 `scorer/rules/` 下的文件、`config/scoring.yaml`，或 `config/spots.yaml` 里的 `allow_night`、`best_tide_window_min`、`max_gust_kmh`、`max_wave_m` 而没有加版本号，会显示 `... changed, but ruleset_version is still N` 并以错误退出。改钓点的 `name`、`notes`、注释不需要加版本号。
@@ -142,7 +142,7 @@
 - 命令：`python3 -m pytest tests/unit -q`
 - 运行目录：项目根目录
 - 前置条件：已安装依赖。不需要网络，测试用的是 `tests/smoke/samples/` 里保存的真实返回。
-- 预期结果：最后一行 `72 passed`。
+- 预期结果：最后一行 `76 passed`。改了打分参数而没有同步 `docs/scoring-logic.md` 时，`test_scoring_doc.py` 里的测试会失败，并说明哪里对不上。
 - 记录：2026-10-09，M1。在开发环境（Python 3.13）运行过；Liang 的 Mac 上还没运行过。
 
 ### 检查已发布的数据（M1 验收用）

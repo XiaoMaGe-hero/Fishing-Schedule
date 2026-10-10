@@ -68,3 +68,11 @@
 
 - 密钥不进仓库、不进前端代码。`.env` 加入 `.gitignore`。
 - 删除数据表、清空存储桶、强制推送、批量删除文件等不可逆操作，执行前先问 Liang。
+
+## 7. 打分逻辑文档
+
+- `docs/scoring-logic.md` 用文字说明全部打分逻辑和当前参数。Liang 通过阅读和修改这份文档来干预打分。
+- 每次修改打分逻辑或参数（`scorer/rules/`、`config/scoring.yaml`、`config/spots.yaml` 里的打分设置），都要在同一次改动里更新这份文档，并在文末的修改记录里加一行。`tests/unit/test_scoring_doc.py` 会检查文档与代码是否一致。
+- Liang 改了这份文档里的算法描述时，以文档为准：按文档修改代码和测试，递增 `ruleset_version`，运行 `python3 -m scorer.version --update`，补上修改记录。文档写得不够明确、无法实现时，先问 Liang，不要自行揣测。
+- 不得为了让一致性测试通过而去改文档里 Liang 写的内容；文档与代码对不上时，改的是代码。
+

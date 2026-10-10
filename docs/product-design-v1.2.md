@@ -469,7 +469,7 @@ scorer 读取 M1 的输出和 `config/` 下的配置，产出 `recommendations.j
 | 9 版本号检查 | 待填 | 待填 |
 
 - 完成日期：待填
-- 变更记录：2026-10-08，Liang 同意。（1）scorer 不再直接写数据库，分数由 publish 步骤写入；（2）明确夜间否决以 is\_daylight 为准，不否决天光规则加分的时段。原因见第 13 节。2026-10-10，Liang 同意：M2 与 M1 验收第 1 项（定时任务连续 3 次成功）并行进行，不等 M1 确认。2026-10-10，实现时新增一条安全否决，待 Liang 确认：某小时没有阵风或浪高预报时不推荐，因为无法对照安全上限；`recommendations.json` 的完整 Schema（`schemas/recommendations.schema.json`）也待 Liang 确认。
+- 变更记录：2026-10-08，Liang 同意。（1）scorer 不再直接写数据库，分数由 publish 步骤写入；（2）明确夜间否决以 is\_daylight 为准，不否决天光规则加分的时段。原因见第 13 节。2026-10-10，Liang 同意：M2 与 M1 验收第 1 项（定时任务连续 3 次成功）并行进行，不等 M1 确认。2026-10-10，Liang 答复：（1）`recommendations.json` 的完整 Schema（`schemas/recommendations.schema.json`）初步确认；（2）实现时新增的“没有阵风或浪高预报时不推荐”这条否决不保留，已去掉，规则版本升为 2；（3）初始权重和阈值先按实现时定的起点使用。2026-10-10，Liang 要求：打分逻辑单独成文（`docs/scoring-logic.md`），每次修改都要同步更新，Liang 可以通过修改该文档干预打分；做法写入 `AGENTS.md` 第 7 节。
 - Liang 确认：待确认
 
 ### M3 页面只读部分

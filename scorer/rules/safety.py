@@ -23,12 +23,3 @@ def night_veto(hour, spot, ctx):
     if not hour.is_daylight and not spot.get("allow_night", False):
         return "Night: this spot is not fished after dark"
     return None
-
-
-@veto(name="no_forecast")
-def no_forecast_veto(hour, spot, ctx):
-    # Without gusts or waves the two safety limits above cannot be checked,
-    # so the hour is not recommended rather than scored on tide and light alone.
-    if hour.wind_gust_kmh is None or hour.wave_height_m is None:
-        return "No wind or wave forecast for this hour, so it cannot be checked against the safety limits"
-    return None

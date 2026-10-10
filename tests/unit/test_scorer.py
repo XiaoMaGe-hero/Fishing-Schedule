@@ -16,6 +16,8 @@ from scorer.api import Context, HourConditions, RuleResult, Spot, parse_utc
 
 from conftest import ROOT, SAMPLE_NOW
 
+CURRENT_VERSION = yaml.safe_load((ROOT / "config" / "scoring.yaml").read_text(encoding="utf-8"))["ruleset_version"]
+
 
 @pytest.fixture
 def config():
@@ -132,9 +134,10 @@ def test_a_new_rule_file_is_picked_up_without_touching_the_engine(collected, con
     scoring = json.loads(json.dumps(scoring))
     scoring["weights"]["warm_sea"] = 2
     result = engine.score_all(out, scoring, spots, rules_dir=rules_dir)
-    window = spot_result(result, "new-brighton-pier")["windows"][0]
-    assert "warm_sea" in [r["rule"] for r in window["reasons"]]
-    assert next(r for r in window["reasons"] if r["rule"] == "warm_sea")["reason"].startswith("sea ")
+    windows = spot_result(result, "new-brighton-pier")["windows"]
+    assert all("warm_sea" in [r["rule"] for r in w["reasons"]] for w in windows)
+    reasons = [r["reason"] for w in windows for r in w["reasons"] if r["rule"] == "warm_sea"]
+    assert any(reason.startswith("sea ") for reason in reasons)
 
 
 def test_a_rule_without_a_weight_is_reported_clearly(collected, config, tmp_path):
@@ -155,7 +158,7 @@ def test_every_window_lists_all_rules_with_score_and_reason(scored):
         for window in spot["windows"]:
             assert [r["rule"] for r in window["reasons"]] == ["light", "rain", "tide", "wave", "wind"]
             assert all(r["reason"] and r["weight"] > 0 for r in window["reasons"])
-            assert window["ruleset_version"] == result["ruleset_version"] == 1
+            assert window["ruleset_version"] == result["ruleset_version"] == CURRENT_VERSION
 
 
 # --- item 5: a missing spot setting skips only what depends on it -----------
@@ -211,16 +214,14 @@ def test_a_veto_zeroes_the_hour_and_says_why(config, changes, text):
     assert any(text in message for message in result["safety"])
 
 
-def test_an_hour_without_wind_or_wave_forecast_is_not_recommended(config, scored):
+def test_an_hour_without_forecast_is_scored_on_the_rules_that_still_have_data(config):
+    """Liang's decision of 2026-10-10: missing wind or wave data is not a veto; those rules are simply skipped."""
     scoring, _ = config
     rules, vetoes = engine.load_rules()
-    for changes in ({"wind_gust_kmh": None}, {"wave_height_m": None}):
-        hour = make_hour(**changes)
-        result = engine.score_hour(hour, PIER, make_ctx(hour, scoring["rules"]), rules, vetoes, scoring["weights"])
-        assert result["vetoed"] and "cannot be checked against the safety limits" in result["safety"][0]
-    # in the replayed samples the last 10 hours of the week have no forecast at all
-    _, result = scored
-    assert all(h["vetoed"] for h in spot_result(result, "new-brighton-pier")["hourly"][158:])
+    hour = make_hour(wind_speed_kmh=None, wind_gust_kmh=None, wind_relative=None, wave_height_m=None, precip_prob_pct=None)
+    result = engine.score_hour(hour, PIER, make_ctx(hour, scoring["rules"]), rules, vetoes, scoring["weights"])
+    assert result["vetoed"] is False and result["score"] > 0
+    assert [p["rule"] for p in result["parts"] if p["score"] is None] == ["rain", "wave", "wind"]
 
 
 def test_at_the_limit_is_still_allowed_and_night_spots_are_not_vetoed(config):
@@ -255,8 +256,7 @@ def test_the_hour_around_dawn_and_dusk_is_not_treated_as_night(scored):
         for d in conditions["days"] for k in ("sunrise_utc", "sunset_utc"))]
     assert len(edge) >= 14
     other_veto = {h["time_utc"] for h in conditions["hourly"]
-                  if h["wind_gust_kmh"] is None or h["wave_height_m"] is None      # no forecast: vetoed for that reason
-                  or h["wind_gust_kmh"] > 45 or h["wave_height_m"] > 2}
+                  if (h["wind_gust_kmh"] or 0) > 45 or (h["wave_height_m"] or 0) > 2}
     checked = [h for h in edge if h["time_utc"] not in other_veto]
     assert len(checked) >= 8 and all(not scores[h["time_utc"]]["vetoed"] for h in checked)
 
@@ -309,7 +309,7 @@ def test_editing_a_rule_without_a_new_version_is_an_error(project_copy):
     rule_file = project_copy / "scorer" / "rules" / "rain.py"
     rule_file.write_text(rule_file.read_text(encoding="utf-8").replace("/ 100,", "/ 90,"), encoding="utf-8")
     problem = version.check(project_copy)
-    assert problem and "ruleset_version is still 1" in problem
+    assert problem and f"ruleset_version is still {CURRENT_VERSION}" in problem
     with pytest.raises(SystemExit):
         version.update(project_copy)                      # cannot be waved through without a new number
     bump(project_copy)
@@ -328,7 +328,7 @@ def test_changing_a_setting_without_a_new_version_is_an_error(project_copy, edit
     text = path.read_text(encoding="utf-8")
     assert old in text
     path.write_text(text.replace(old, new, 1), encoding="utf-8")
-    assert "ruleset_version is still 1" in version.check(project_copy)
+    assert f"ruleset_version is still {CURRENT_VERSION}" in version.check(project_copy)
 
 
 def test_notes_and_comments_in_config_do_not_need_a_new_version(project_copy):
@@ -347,7 +347,7 @@ def test_scores_reach_the_history_rows(scored):
     for spot in result["spots"]:
         for hour in spot["hourly"][:5] + spot["hourly"][-5:]:
             row = by_key[(spot["spot_id"], hour["time_utc"])]
-            assert row["score"] == hour["score"] and row["ruleset_version"] == 1
+            assert row["score"] == hour["score"] and row["ruleset_version"] == CURRENT_VERSION
     assert len({frozenset(r) for r in full_rows}) == 1          # every row has the same columns
 
 

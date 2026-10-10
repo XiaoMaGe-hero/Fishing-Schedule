@@ -3,8 +3,9 @@
 # After ANY change to this file, to a file in scorer/rules/, or to the scoring
 # settings of a spot in spots.yaml: raise ruleset_version by 1, then run
 #     python3 -m scorer.version --update
+# and describe the change in docs/scoring-logic.md (the tests check that the two agree).
 # The scorer refuses to run while a change has no new version number.
-ruleset_version: 1
+ruleset_version: 2
 
 # How much each rule counts. Only the proportions matter.
 # A rule that is skipped for an hour (missing data or missing spot setting)
