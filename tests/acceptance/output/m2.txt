@@ -1,0 +1,64 @@
+M2 acceptance check - label: m2
+checked at 2026-10-10T09:52:28Z  local ruleset_version 2  (rules and lock file agree)
+
+[published files]
+  conditions/new-brighton-pier.json: generated_at 2026-10-10T09:50:17Z, 53685 bytes
+  conditions/southshore.json: generated_at 2026-10-10T09:50:17Z, 52966 bytes
+  river_flow.json: generated_at 2026-10-10T09:50:17Z, 108146 bytes
+  recommendations.json: generated_at 2026-10-10T09:50:17Z, 33004 bytes
+
+[item 1] coverage and version
+  new-brighton-pier: 168 hourly scores, 94 vetoed, 11 windows
+  southshore: 168 hourly scores, 97 vetoed, 9 windows
+  => PASS: both spots: 168 hourly scores matching the conditions hours, current ruleset_version
+
+[item 4] every window lists every rule with a score and a sentence; best windows shown
+  new-brighton-pier: Tue 13 Oct 19:00 - 21:00  score 94.9  high
+      light     1.0 x1  within 60 min of sunset
+      rain      1.0 x1  0% chance of rain
+      tide      1.0 x3  0 h 35 min after high tide, inside the best window
+      wave    0.745 x2  waves 0.5 m (limit 2.0 m)
+      wind      1.0 x3  offshore wind 6 km/h
+  new-brighton-pier: Tue 13 Oct 06:00 - 11:00  score 87.6  high
+      light     0.7 x1  within 60 min of sunrise
+      rain      1.0 x1  0% chance of rain
+      tide    0.915 x3  1 h 09 min before high tide, inside the best window
+      wave    0.702 x2  waves 0.6 m (limit 2.0 m)
+      wind     0.97 x3  cross-shore wind 0 km/h
+  southshore: Tue 13 Oct 06:00 - 11:00  score 88.5  high
+      light     0.7 x1  within 60 min of sunrise
+      rain      1.0 x1  0% chance of rain
+      tide    0.915 x3  1 h 09 min before high tide, inside the best window
+      wave    0.702 x2  waves 0.6 m (limit 2.0 m)
+      wind      1.0 x3  wind (direction to shore not scored: spot has no shore_facing_deg) 2 km/h
+  southshore: Wed 14 Oct 06:00 - 12:00  score 86.5  low
+      light   0.667 x1  within 60 min of sunrise
+      rain     0.79 x1  16% chance of rain
+      tide    0.906 x3  0 h 56 min before high tide, inside the best window
+      wave    0.738 x2  waves 0.5 m (limit 2.0 m)
+      wind      1.0 x3  wind (direction to shore not scored: spot has no shore_facing_deg) 10 km/h
+  => PASS: all windows carry 5 rules (light, rain, tide, wave, wind) with reasons, sorted best first
+
+[item 6] vetoed hours
+  new-brighton-pier Tue 13 Oct 16:00: gust 50.8 km/h, wave 0.52 m -> vetoed, score 0.0
+  new-brighton-pier Tue 13 Oct 17:00: gust 52.6 km/h, wave 0.52 m -> vetoed, score 0.0
+  new-brighton-pier Tue 13 Oct 18:00: gust 48.6 km/h, wave 0.52 m -> vetoed, score 0.0
+  => PASS: every hour over a gust / wave limit or at night is vetoed with score 0, no other hour is, and no vetoed hour is inside a window
+
+[item 7] confidence
+  => PASS: 11 windows 'high' (start within 72 h of 2026-10-10T09:50:17Z), 9 'low'
+
+[item 8] scoring the published conditions again on this computer
+  => PASS: recomputed here twice: identical to each other and to the published file
+
+[history table] scores in conditions_hourly
+  rows with a score: 336; new-brighton-pier 2026-10-13T06:00:00Z: table [{'score': 94.8, 'ruleset_version': 2}] vs file score 94.8
+  => PASS: the table holds the same score and ruleset_version as the published file
+
+[summary]
+  item 1     PASS  both spots: 168 hourly scores matching the conditions hours, current ruleset_version
+  item 4     PASS  all windows carry 5 rules (light, rain, tide, wave, wind) with reasons, sorted best first
+  item 6     PASS  every hour over a gust / wave limit or at night is vetoed with score 0, no other hour is, and no vetoed hour is inside a window
+  item 7     PASS  11 windows 'high' (start within 72 h of 2026-10-10T09:50:17Z), 9 'low'
+  item 8     PASS  recomputed here twice: identical to each other and to the published file
+  item table PASS  the table holds the same score and ruleset_version as the published file

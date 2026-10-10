@@ -458,19 +458,19 @@ scorer 读取 M1 的输出和 `config/` 下的配置，产出 `recommendations.j
 
 | 验收项 | 结果 | 实测证据 |
 | --- | --- | --- |
-| 1 Schema 校验与覆盖范围 | 待填 | 待填 |
-| 2 改权重后分数变化 | 待填 | 待填 |
-| 3 新增规则无需改引擎 | 待填 | 待填 |
-| 4 评分理由完整 | 待填 | 待填 |
-| 5 参数为空时跳过 | 待填 | 待填 |
-| 6 超限否决 | 待填 | 待填 |
-| 7 可信度分级 | 待填 | 待填 |
-| 8 输出可重复 | 待填 | 待填 |
-| 9 版本号检查 | 待填 | 待填 |
+| 1 Schema 校验与覆盖范围 | 通过（2026-10-10） | GitHub Actions 发布时 `push: 5 output files are valid`；已发布的推荐文件覆盖两个钓点各 168 小时，规则版本 2。`tests/acceptance/output/m2.txt` |
+| 2 改权重后分数变化 | 通过（2026-10-10） | 单元测试：把降雨权重放大 10 倍，100 多个小时的分数都向降雨得分靠拢。`tests/unit/test_scorer.py` 的 `test_raising_a_weight_pulls_scores_towards_that_rule` |
+| 3 新增规则无需改引擎 | 通过（2026-10-10） | 单元测试：在规则目录里新增一个 `warm_sea.py`，不改引擎，新规则出现在每个时段的理由里。`tests/unit/test_scorer.py` 的 `test_a_new_rule_file_is_picked_up_without_touching_the_engine` |
+| 4 评分理由完整 | 通过（2026-10-10） | 已发布的 20 个时段每个都带五条规则的得分、权重和理由，按分数从高到低排列。`tests/acceptance/output/m2.txt` |
+| 5 参数为空时跳过 | 通过（2026-10-10） | 单元测试：岸线朝向为空时风向不计分、理由中注明，分数与侧风相同；浪高上限为空时该规则跳过，权重由其余规则分摊。真实数据中 Southshore 的理由显示 `direction to shore not scored`，最高分 88.5，没有异常偏低。`tests/unit/test_scorer.py` 的 `test_no_shore_direction_skips_the_direction_part_only`、`test_a_skipped_rule_hands_its_weight_to_the_others`；`tests/acceptance/output/m2.txt` |
+| 6 超限否决 | 通过（2026-10-10） | 单元测试：阵风 46 km/h（上限 45）的小时记 0 分并带安全提示。真实数据：10 月 13 日 16 点到 18 点阵风 48.6 到 52.6 km/h，三个小时都被否决、分数为 0；所有超限或夜间的小时都被否决，没有被否决的小时落在推荐时段内。`tests/unit/test_scorer.py` 的 `test_a_veto_zeroes_the_hour_and_says_why`；`tests/acceptance/output/m2.txt` |
+| 7 可信度分级 | 通过（2026-10-10） | 已发布的时段中 11 个开始于 72 小时内，标为 high；9 个在之后，标为 low。`tests/acceptance/output/m2.txt` |
+| 8 输出可重复 | 通过（2026-10-10） | 在 Liang 的 Mac 上用同样的规则对已发布的条件重新评分两次，两次结果相同，并且与 GitHub Actions 发布的文件逐字相同。`tests/acceptance/output/m2.txt` |
+| 9 版本号检查 | 通过（2026-10-10） | 单元测试：改规则文件、权重、门槛或钓点上限而不改版本号，检查报错；升版本号并登记后通过。开发过程中修改潮汐规则的文字时，这个检查也实际拦住过一次。`tests/unit/test_scorer.py` 的 `test_editing_a_rule_without_a_new_version_is_an_error`、`test_changing_a_setting_without_a_new_version_is_an_error` |
 
-- 完成日期：待填
+- 完成日期：2026-10-10
 - 变更记录：2026-10-08，Liang 同意。（1）scorer 不再直接写数据库，分数由 publish 步骤写入；（2）明确夜间否决以 is\_daylight 为准，不否决天光规则加分的时段。原因见第 13 节。2026-10-10，Liang 同意：M2 与 M1 验收第 1 项（定时任务连续 3 次成功）并行进行，不等 M1 确认。2026-10-10，Liang 答复：（1）`recommendations.json` 的完整 Schema（`schemas/recommendations.schema.json`）初步确认；（2）实现时新增的“没有阵风或浪高预报时不推荐”这条否决不保留，已去掉，规则版本升为 2；（3）初始权重和阈值先按实现时定的起点使用。2026-10-10，Liang 要求：打分逻辑单独成文（`docs/scoring-logic.md`），每次修改都要同步更新，Liang 可以通过修改该文档干预打分；做法写入 `AGENTS.md` 第 7 节。
-- Liang 确认：待确认
+- Liang 确认：2026-10-10，Liang 确认 M2。
 
 ### M3 页面只读部分
 

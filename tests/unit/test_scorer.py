@@ -171,7 +171,7 @@ def test_no_shore_direction_skips_the_direction_part_only(config):
     a = engine.score_hour(known, PIER, make_ctx(known, scoring["rules"]), rules, vetoes, scoring["weights"])
     b = engine.score_hour(unknown, PIER, make_ctx(unknown, scoring["rules"]), rules, vetoes, scoring["weights"])
     wind = next(p for p in b["parts"] if p["rule"] == "wind")
-    assert "not scored" in wind["reason"] and "shore_facing_deg" in wind["reason"]
+    assert "direction not scored" in wind["reason"] and "shore direction is not set" in wind["reason"]
     assert b["score"] == a["score"]            # same as a neutral, cross-shore wind: not dragged down
 
 

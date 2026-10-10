@@ -34,7 +34,7 @@
 
 <!-- scoring.yaml:start -->
 ```yaml
-ruleset_version: 2
+ruleset_version: 3
 
 # How much each rule counts. Only the proportions matter.
 # A rule that is skipped for an hour (missing data or missing spot setting)
@@ -136,3 +136,4 @@ rules:
 | --- | --- | --- | --- |
 | 1 | 2026-10-10 | 初版：五条规则、三条阵风、浪高、夜间否决，外加一条“没有阵风或浪高预报时不推荐”的否决 | M2 首次实现 |
 | 2 | 2026-10-10 | 去掉“没有阵风或浪高预报时不推荐”的否决 | Liang 决定不保留 |
+| 3 | 2026-10-10 | 只改了风规则的一句理由文字：钓点没有岸线朝向时，不再显示配置项名称 `shore_facing_deg`，改成普通的英文说明。分数的算法没有变 | 这句话会显示在网页上，原来的写法访客看不懂 |

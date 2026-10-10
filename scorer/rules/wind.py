@@ -17,5 +17,6 @@ def wind_rule(hour, spot, ctx):
     elif hour.wind_relative == "cross":
         direction = "cross-shore wind"
     else:
-        direction = "wind (direction to shore not scored: spot has no shore_facing_deg)"
+        return RuleResult(min(1.0, max(0.0, score)),
+                          f"wind {hour.wind_speed_kmh:.0f} km/h (direction not scored: this spot's shore direction is not set)")
     return RuleResult(min(1.0, max(0.0, score)), f"{direction} {hour.wind_speed_kmh:.0f} km/h")

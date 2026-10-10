@@ -20,3 +20,10 @@ temp/
 
 # collector / publish working folder
 out/
+!.env.example
+
+# website: installed packages, build output, files generated from schemas/ and config/, local sample data
+web/node_modules/
+web/dist/
+web/src/data/generated/
+web/public/dev-data/

@@ -134,7 +134,40 @@
 
 ## 6. 前端（web）
 
-（暂无）
+### 安装前端依赖
+- 命令：`npm ci`
+- 运行目录：`web/`
+- 前置条件：Node.js 20 或更高（`node --version` 查看）
+- 预期结果：最后显示 `added N packages`。只需在第一次、或 `web/package-lock.json` 变化后运行。
+- 记录：2026-10-10，M3。在开发环境（Node 22）运行过；Liang 的 Mac 上还没运行过。
+
+### 在本机打开网页（开发模式）
+- 命令：`npm run dev`
+- 运行目录：`web/`
+- 前置条件：已安装前端依赖；`web/.env.local` 里有一行 `VITE_DATA_BASE_URL=https://<项目>.supabase.co/storage/v1/object/public/fishing-data`（照 `web/.env.example` 写，这个地址是公开的，不是密钥）
+- 预期结果：显示 `Local: http://localhost:5173/`，浏览器打开这个地址能看到网页，读取的是线上已发布的真实数据。改代码后页面自动刷新。按 Ctrl+C 停止。
+- 记录：2026-10-10，M3。开发环境里用本地数据文件代替线上地址运行过；连接真实 Supabase 的情况还没运行过。
+
+### 构建前端并运行前端测试
+- 命令：`npm run build` 和 `npm test`
+- 运行目录：`web/`
+- 前置条件：已安装前端依赖
+- 预期结果：`npm run build` 最后一行 `✓ built in ...`，产物在 `web/dist/`；`npm test` 显示 `Tests  21 passed`。两条命令都会先运行 `scripts/prebuild.mjs`，从 `schemas/` 生成 TypeScript 类型，从 `config/spots.yaml` 生成钓点列表。
+- 记录：2026-10-10，M3。在开发环境运行过。
+
+### 把时间固定在某一刻查看网页（调试用）
+- 命令：在网址后面加 `?now=2026-10-10T02:00:00Z`，例如 `http://localhost:5173/?now=2026-10-10T02:00:00Z`
+- 运行目录：无
+- 前置条件：网页已打开。时间写 UTC。
+- 预期结果：页面按这个时刻计算“今天”、已过去的时段和“更新于多久之前”。把时间设到数据生成 6 小时以后，可以看到过期警示。
+- 记录：2026-10-10，M3。在开发环境运行过。
+
+### 更换首页视频
+- 命令：编辑 `web/src/config.ts`，把 `VIDEO_ID` 改成 YouTube 视频编号（网址 `watch?v=` 后面那一段），提交并推送
+- 运行目录：无
+- 前置条件：无
+- 预期结果：Vercel 自动重新部署，页面顶部出现视频封面，点击后才加载播放器。`VIDEO_ID` 为空时不显示视频区域。
+- 记录：2026-10-10，M3。还没有实际用过。
 
 ## 7. 测试
 
@@ -172,6 +205,17 @@
 - 前置条件：有 Supabase 账号，免费档的两个项目名额还有空位
 - 预期结果：SQL 运行后显示 `Success. No rows returned`；Table Editor 里出现 `conditions_hourly` 表；Storage 里出现 `fishing-data` 桶。
 - 记录：2026-10-09，M1。Liang 已做完，随后的发布成功写入了数据。
+
+### 在 Vercel 上部署网页（网页操作，只做一次）
+- 命令：
+  1. 在 vercel.com 点 Add New → Project，选择 GitHub 仓库 `Fishing-Schedule` 并导入。
+  2. Root Directory 保持默认（仓库根目录），其他构建设置都不用改，仓库里的 `vercel.json` 已经写好。
+  3. 展开 Environment Variables，添加一项：名称 `VITE_DATA_BASE_URL`，值 `https://<项目>.supabase.co/storage/v1/object/public/fishing-data`。
+  4. 点 Deploy。
+- 运行目录：无
+- 前置条件：有 Vercel 账号并已关联 GitHub
+- 预期结果：一两分钟后显示部署成功，并给出一个 `https://....vercel.app` 的地址，打开能看到网页和真实数据。之后每次推送到 `main`，Vercel 都会自动重新部署；数据更新不会触发部署。
+- 记录：2026-10-10，M3。**还没有实际做过**，`vercel.json` 也还没有在 Vercel 上验证过。
 
 ### 查看定时任务这次会不会采集
 - 命令：`SUPABASE_URL=<项目地址> SUPABASE_SERVICE_KEY=$SUPABASE_SERVICE_KEY python3 -m publish.run due --min-minutes 170`
