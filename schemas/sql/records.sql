@@ -1,4 +1,5 @@
--- DRAFT for M4 - not yet confirmed by Liang, not yet run anywhere.
+-- Confirmed by Liang on 2026-10-11 and run by him in the Supabase SQL editor the same day.
+-- From then on this is a contract: do not change it without asking Liang.
 --
 -- records: one row per fishing trip, including the trips with no fish.
 -- Everyone may read. Only a signed-in user may write, and public sign-up is

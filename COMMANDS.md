@@ -152,7 +152,7 @@
 - 命令：`npm run build` 和 `npm test`
 - 运行目录：`web/`
 - 前置条件：已安装前端依赖
-- 预期结果：`npm run build` 最后一行 `✓ built in ...`，产物在 `web/dist/`；`npm test` 显示 `Tests  22 passed`。两条命令都会先运行 `scripts/prebuild.mjs`，从 `schemas/` 生成 TypeScript 类型，从 `config/spots.yaml` 生成钓点列表。
+- 预期结果：`npm run build` 最后一行 `✓ built in ...`，产物在 `web/dist/`；`npm test` 显示 `Tests  42 passed`。两条命令都会先运行 `scripts/prebuild.mjs`，从 `schemas/` 生成 TypeScript 类型，从 `config/spots.yaml` 生成钓点列表。
 - 记录：2026-10-10，M3。在开发环境运行过。
 
 ### 把时间固定在某一刻查看网页（调试用）
@@ -191,6 +191,13 @@
 - 前置条件：和 `check_m1.py` 用同一个 `.env`；本机代码和 GitHub 上的一致（已推送）；在一次使用当前规则的 Collect 运行之后运行。
 - 预期结果：打印已发布的推荐文件的覆盖范围和规则版本、每个钓点最好的两个时段及各规则的理由、被否决的小时、可信度分级；然后在本机用同样的规则把已发布的条件重新评分，与已发布的结果逐字比较；最后核对历史表里的分数。summary 里全部是 PASS。输出保存到 `tests/acceptance/output/<标签>.txt`。
 - 记录：2026-10-10，M2。脚本逻辑用本机 `out/` 里的真实数据离线检查过；**还没有对着真实的 Supabase 运行过**。
+
+### 检查钓鱼记录的权限和快照（M4 验收用）
+- 命令：`python3 tests/acceptance/check_m4.py <标签>`，例如 `python3 tests/acceptance/check_m4.py m4`
+- 运行目录：项目根目录
+- 前置条件：和 `check_m1.py` 用同一个 `.env`（只有 `SUPABASE_URL` 和 anon 密钥）。检查快照、照片之前，先在网页上按验收步骤录入几条记录。
+- 预期结果：脚本只用 anon 密钥，也就是以未登录访客的身份：尝试新增记录、修改记录、上传文件，三项都应被拒绝；尝试注册新账号，应被拒绝；把每条记录里的快照和历史表逐项比较；下载每张照片量尺寸（长边不超过 1600）；找出没有记录引用的照片文件。summary 里没有 FAIL。输出保存到 `tests/acceptance/output/<标签>.txt`。如果某项“应被拒绝”的尝试没有被拒绝，脚本会说明留下了什么（一条测试记录或一个测试账号），需要到 Supabase 后台删掉。
+- 记录：2026-10-11，M4。脚本逻辑用假数据离线检查过；**还没有对着真实的 Supabase 运行过**。
 
 ## 8. 部署与定时任务
 
@@ -256,6 +263,13 @@
 - 前置条件：已做过上面的第一次推送
 - 预期结果：`git push` 最后显示 `main -> main`。
 - 记录：2026-10-08，M0
+
+### 让网页连上钓鱼记录（M4）
+- 命令：在 Vercel 项目的 Settings → Environment Variables 里添加 `VITE_SUPABASE_URL`（`https://<项目>.supabase.co`，不带任何路径）和 `VITE_SUPABASE_ANON_KEY`（Supabase 的 anon public 密钥），然后重新部署（推送一次代码，或在 Deployments 里点 Redeploy）
+- 运行目录：无
+- 前置条件：`schemas/sql/records.sql` 已在 Supabase 的 SQL Editor 执行；Authentication 里已建好 Liang 的账号并关闭了公开注册。**不要**把 service_role 密钥放进 Vercel。
+- 预期结果：网页底部的 “Fishing record” 一栏显示记录列表（没有记录时显示 “No trips recorded yet.”）。没配这两个变量时显示 “The fishing record is not set up on this site yet.”。本机开发时把同样两行写进 `web/.env.local`。
+- 记录：2026-10-11，M4。还没有实际用过。
 
 ## 9. 排错
 

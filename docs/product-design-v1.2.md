@@ -406,9 +406,9 @@ collector 每 3 小时自动运行一次，产出第 5 节定义的 `conditions/
 | 7 校验失败不覆盖 | 通过（2026-10-10） | 人为产出缺少 `spot_id` 的文件：GitHub Actions 的发布步骤输出 `push: output does NOT match the schemas - nothing was uploaded` 并以错误退出（exit code 1，日志由 Liang 提供）；之后检查，四个已发布文件的生成时间仍是 11:13:38Z，历史表未变。`tests/acceptance/output/d.txt` |
 | 8 UTC 与夏令时切换 | 通过（2026-10-10） | 已发布文件的全部时间字段为 UTC（`tests/acceptance/output/20261009T105403Z.txt`）。夏令时切换日按约定用单元测试验收：`tests/unit/test_run.py` 的 `test_daylight_saving_change_inside_the_week`（2026-04-05、2026-09-27）和 `test_sources.py` 的 `test_linz_no_jump_across_daylight_saving_changes` 通过，全部 44 个测试通过。 |
 
-- 完成日期：2026-10-11（等 Liang 确认）
+- 完成日期：2026-10-11
 - 变更记录：2026-10-08，Liang 同意。（1）上传和写表改由独立的 publish 步骤完成；（2）完整 Schema 和建表 SQL 列为本里程碑第一项交付，并入验收第 2 项；（3）验收第 8 项的夏令时切换日部分改用单元测试验收。原因见第 13 节。2026-10-09，Liang 同意：验收第 4 项增加水温，水温也要和数据源一致。2026-10-09，Liang 确认完整的 JSON Schema（`schemas/` 下三个文件）和 `conditions_hourly` 建表 SQL，包括六处补充：潮时偏移的三个标注字段、小时数固定为 168、月相用 0 到 1 的小数、流量保留 5 分钟一个点、`meta.json` 固定四个数据源、历史表的写入规则。自此这些成为契约。2026-10-10，Liang 同意：定时任务改为每小时触发，距上次发布不满 170 分钟就跳过（方案 A）。原因：上线后第一天，GitHub 应触发约 8 次，实际只触发 2 次，相隔 6.5 小时。验收第 1 项相应写明只计实际执行了采集的运行，并在新的工作流上重新计数。
-- Liang 确认：待确认
+- Liang 确认：2026-10-11，Liang 确认 M1。
 
 ### M2 评分引擎与规则
 
@@ -596,7 +596,7 @@ Liang 登录后可以新增、编辑、删除钓鱼记录，上传照片、贴�
 | 10 匿名只读 | 待填 | 待填 |
 
 - 完成日期：待填
-- 变更记录：无
+- 变更记录：2026-10-11，Liang 确认 `records` 建表 SQL（`schemas/sql/records.sql`）并已在 Supabase 执行，自此成为契约；其中渔获用 `catches` 一个字段保存多条（鱼种、数量、尺寸）。2026-10-11，实现时的做法，供 Liang 知悉：（1）分数快照在约定的 `hours`、`mean_score`、`ruleset_version` 之外，每个小时也各带一个 `ruleset_version`；（2）编辑记录时，只有钓点或起止时间变了才重新取快照，否则保留保存时的快照；（3）未登录时页面底部有一个 “Owner sign in” 登录入口，新增、编辑、删除入口只在登录后出现；（4）出钓时间按新西兰时间填写，一次出钓限定在同一天内。
 - Liang 确认：待确认
 
 ### M5 收尾与回归

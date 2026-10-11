@@ -167,3 +167,62 @@ h2 { font: 700 1.5rem/1.15 var(--display); color: var(--deep); letter-spacing: -
 @media (prefers-reduced-motion: no-preference) {
   .window__bar span { transition: width 0.25s ease-out; }
 }
+
+/* Fishing record */
+.button--solid { background: var(--deep); color: #fff; }
+.button:disabled { opacity: 0.55; cursor: default; }
+.link { background: none; border: 0; padding: 10px 0; min-height: 44px; color: var(--tide); text-decoration: underline; cursor: pointer; font-size: 0.875rem; }
+.records__add { width: 100%; margin-bottom: 16px; }
+.records__list { display: grid; gap: 14px; }
+.records__failed p { margin-bottom: 12px; }
+.records__problem { margin: 0 0 14px; }
+.records__account { margin-top: 18px; font-size: 0.875rem; color: var(--muted); }
+.records .status { margin-top: 0; }
+.record { background: var(--paper); border-radius: 14px; padding: 14px 16px; border-left: 6px solid var(--line); }
+.record--catch { border-left-color: var(--go); }
+.record__head { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+.record h3 { font: 700 1.1875rem/1.2 var(--display); color: var(--deep); margin: 0; }
+.record__when { color: var(--muted); font-size: 0.875rem; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.record__outcome { font: 700 0.75rem/1 var(--body); letter-spacing: 0.04em; text-transform: uppercase; padding: 6px 9px; border-radius: 999px; white-space: nowrap; color: var(--muted); box-shadow: inset 0 0 0 1.5px var(--line); }
+.record__outcome--catch { background: var(--go); color: #fff; box-shadow: none; }
+.record__catches { margin-top: 10px; font: 650 1.0625rem/1.35 var(--display); }
+.record__line, .record__notes, .record__video { margin-top: 8px; font-size: 0.9375rem; overflow-wrap: anywhere; }
+.record__line span { color: var(--muted); font-size: 0.8125rem; margin-right: 4px; }
+.record__notes { white-space: pre-wrap; }
+.record__photos, .form__photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 12px; }
+.record__photos img, .form__photos img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; background: var(--fog); }
+.record__conditions { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--line); }
+.record__conditions h4 { font: 600 0.8125rem var(--body); color: var(--muted); margin-bottom: 4px; }
+.record__conditions dl div { display: grid; grid-template-columns: 4.2em 1fr; gap: 8px; padding: 2px 0; font-size: 0.875rem; }
+.record__conditions dt { color: var(--muted); }
+.record__conditions dd { font-variant-numeric: tabular-nums; }
+.record__nosnap { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 0.8125rem; color: var(--muted); }
+.record__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; font-size: 0.875rem; }
+.record__actions .button { min-height: 44px; padding: 8px 14px; }
+.record__actions span { flex-basis: 100%; font-weight: 600; }
+
+.form { background: var(--paper); border-radius: 14px; padding: 16px; margin-bottom: 16px; display: grid; gap: 14px; }
+.form h3 { font: 700 1.1875rem/1.2 var(--display); color: var(--deep); margin: 0; }
+.form .note { margin-top: -8px; }
+.field { display: grid; gap: 4px; min-width: 0; }
+.form legend { padding: 0; margin-bottom: 6px; }
+.field > span, .field > label, .form legend { font-size: 0.8125rem; font-weight: 600; color: var(--muted); }
+.field input, .field select, .field textarea { font: inherit; color: var(--ink); width: 100%; min-width: 0; min-height: 48px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; }
+.field input[type="file"] { padding: 10px 0; border: 0; min-height: 0; }
+.field textarea { resize: vertical; }
+.field .segmented { margin-bottom: 0; }
+.field .note { margin-top: 0; }
+.form__when { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.form__when .field:first-child { grid-column: 1 / -1; }
+.form__catches { border: 0; padding: 0; margin: 0; display: grid; gap: 10px; min-width: 0; }
+.form__catch { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.field--wide { grid-column: 1 / -1; }
+.form__catch-remove { grid-column: 1 / -1; justify-self: start; padding: 0; min-height: 32px; }
+.form__catches > .link { justify-self: start; padding: 0; }
+.form__photos { margin-top: 0; margin-bottom: 6px; }
+.form__photos li { position: relative; }
+.form__photos button { position: absolute; top: 4px; right: 4px; width: 32px; height: 32px; border-radius: 50%; border: 0; background: rgba(14, 58, 74, 0.86); color: #fff; font-size: 1.125rem; line-height: 1; cursor: pointer; }
+.form__problem { color: #7c2718; background: #f6ddd7; border-left: 4px solid var(--stop); padding: 8px 10px; border-radius: 0 6px 6px 0; font-size: 0.875rem; }
+.form__actions { display: flex; gap: 8px; }
+.form__actions .button { flex: 1; }
+.form--signin { margin: 0; }

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Footer } from "./components/Footer";
 import { Freshness } from "./components/Freshness";
 import { Hero } from "./components/Hero";
+import { Records } from "./components/Records";
 import { RiverFlow } from "./components/RiverFlow";
 import { SeaTemp } from "./components/SeaTemp";
 import { SpotMap } from "./components/SpotMap";
@@ -113,6 +114,7 @@ export function App() {
       )}
 
       <RiverFlow status={river.status} data={river.data} freshness={fresh.flow} onOpen={river.load} />
+      <Records spots={SPOTS} now={now} />
       <Footer freshness={fresh} />
     </main>
   );

@@ -11,3 +11,11 @@ export const STALE_AFTER_HOURS = { forecast: 6, flow: 12 } as const;
 
 /** Hours shown at once in the conditions chart before swiping. */
 export const CHART_VISIBLE_HOURS = 36;
+
+/** Fishing records live in Supabase. Both values are public; see .env.example. Empty = records are switched off. */
+export const SUPABASE_URL: string = (import.meta.env.VITE_SUPABASE_URL ?? "").replace(/\/+$/, "");
+export const SUPABASE_ANON_KEY: string = import.meta.env.VITE_SUPABASE_ANON_KEY ?? "";
+
+/** Photos are shrunk in the browser so the longer side is at most this many pixels before upload. */
+export const PHOTO_MAX_EDGE = 1600;
+export const PHOTO_BUCKET = "record-photos";
