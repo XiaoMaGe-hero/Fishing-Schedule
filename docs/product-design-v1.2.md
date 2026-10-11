@@ -397,7 +397,7 @@ collector 每 3 小时自动运行一次，产出第 5 节定义的 `conditions/
 
 | 验收项 | 结果 | 实测证据 |
 | --- | --- | --- |
-| 1 连续 3 次成功 | 待填 | 待填 |
+| 1 连续 3 次成功 | 通过（2026-10-11） | Liang 提供的 Actions 截图：定时运行 #13（04:51）、#14（09:03）、#15（12:32，均为 2026-10-11 新西兰时间）连续成功，间隔都超过 170 分钟，耗时 35 到 37 秒，与必定执行采集的手动运行 #12（36 秒）一致，据此判断三次都实际执行了采集。未逐次查看运行日志。 |
 | 2 Schema 校验与覆盖范围 | 通过（2026-10-10） | Schema 和建表 SQL 已于 2026-10-09 经 Liang 确认。GitHub Actions 日志显示 `push: 4 output files are valid`；两个钓点各 168 个连续小时，无空值（Southshore 的 `wind_relative` 因岸线朝向未填而为空）。`tests/acceptance/output/20261009T105403Z.txt` |
 | 3 潮汐与官方值一致 | 通过（2026-10-10） | 已发布的 29 个潮与 LINZ 文件分钟级一致、高度相同；10 月 10 日的 10:58、17:03、23:19 与文件原始行逐一对上。`tests/acceptance/output/20261009T105403Z.txt` |
 | 4 天气值与水温一致 | 通过（2026-10-10） | 两个钓点各 3 个小时的气温、风速、风向、水温共 24 个值，与 Open-Meteo 直接返回的值全部相等（发布后 1 分钟检查）。`tests/acceptance/output/20261009T105403Z.txt` |
@@ -406,7 +406,7 @@ collector 每 3 小时自动运行一次，产出第 5 节定义的 `conditions/
 | 7 校验失败不覆盖 | 通过（2026-10-10） | 人为产出缺少 `spot_id` 的文件：GitHub Actions 的发布步骤输出 `push: output does NOT match the schemas - nothing was uploaded` 并以错误退出（exit code 1，日志由 Liang 提供）；之后检查，四个已发布文件的生成时间仍是 11:13:38Z，历史表未变。`tests/acceptance/output/d.txt` |
 | 8 UTC 与夏令时切换 | 通过（2026-10-10） | 已发布文件的全部时间字段为 UTC（`tests/acceptance/output/20261009T105403Z.txt`）。夏令时切换日按约定用单元测试验收：`tests/unit/test_run.py` 的 `test_daylight_saving_change_inside_the_week`（2026-04-05、2026-09-27）和 `test_sources.py` 的 `test_linz_no_jump_across_daylight_saving_changes` 通过，全部 44 个测试通过。 |
 
-- 完成日期：待填
+- 完成日期：2026-10-11（等 Liang 确认）
 - 变更记录：2026-10-08，Liang 同意。（1）上传和写表改由独立的 publish 步骤完成；（2）完整 Schema 和建表 SQL 列为本里程碑第一项交付，并入验收第 2 项；（3）验收第 8 项的夏令时切换日部分改用单元测试验收。原因见第 13 节。2026-10-09，Liang 同意：验收第 4 项增加水温，水温也要和数据源一致。2026-10-09，Liang 确认完整的 JSON Schema（`schemas/` 下三个文件）和 `conditions_hourly` 建表 SQL，包括六处补充：潮时偏移的三个标注字段、小时数固定为 168、月相用 0 到 1 的小数、流量保留 5 分钟一个点、`meta.json` 固定四个数据源、历史表的写入规则。自此这些成为契约。2026-10-10，Liang 同意：定时任务改为每小时触发，距上次发布不满 170 分钟就跳过（方案 A）。原因：上线后第一天，GitHub 应触发约 8 次，实际只触发 2 次，相隔 6.5 小时。验收第 1 项相应写明只计实际执行了采集的运行，并在新的工作流上重新计数。
 - Liang 确认：待确认
 
@@ -533,9 +533,9 @@ scorer 读取 M1 的输出和 `config/` 下的配置，产出 `recommendations.j
 | 10 英文文案与页脚 | 通过（2026-10-10） | 线上版本：界面文案为英文，集中在 `web/src/copy.ts`；页脚有 LINZ、Open-Meteo、Environment Canterbury 的署名与链接，以及免责说明。 |
 | 11 组件内无网络请求 | 通过（2026-10-10） | 单元测试扫描 `web/src/components/` 下全部文件，没有 `fetch`、`XMLHttpRequest` 等请求代码，也不引用取数模块（`web/src/data/derive.test.ts` 的 module boundary 一项）。地图底图和视频播放器由各自的库或浏览器加载，不属于数据请求。 |
 
-- 完成日期：2026-10-11（实测完成，等 Liang 确认）
+- 完成日期：2026-10-11
 - 变更记录：2026-10-08，Liang 同意。验收第 6 项增加夏令时切换日的单元测试验收。原因见第 13 节。2026-10-10，实现时的做法，供 Liang 知悉：钓点的名称、坐标和说明在构建时从 `config/spots.yaml` 读取，没有新增数据文件；逐小时的明细从当前小时开始显示。
-- Liang 确认：待确认
+- Liang 确认：2026-10-11，Liang 确认 M3，并说明暂时这样，之后再从整体效果上优化。
 
 ### M4 钓鱼记录
 
