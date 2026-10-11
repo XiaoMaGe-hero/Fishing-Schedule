@@ -14,7 +14,7 @@ import { WeekList } from "./components/WeekList";
 import { WindStrip } from "./components/WindStrip";
 import { VIDEO_ID } from "./config";
 import { copy } from "./copy";
-import { freshness, todayCards, weekDays, type Block } from "./data/derive";
+import { freshness, todayCards, upcomingHours, weekDays, type Block } from "./data/derive";
 import { SPOTS, useForecast, useRiverFlow } from "./data/useForecast";
 
 /** The current time, refreshed every minute. `?now=2026-10-10T02:00:00Z` pins it, for testing. */
@@ -62,6 +62,10 @@ export function App() {
 
   const conditions = forecast.conditions[spotId];
   const windows = forecast.recommendations?.spots.find((s) => s.spot_id === spotId)?.windows ?? [];
+  // the current hour onwards; falls back to everything if the data is so old that no hour is left
+  const left = conditions ? upcomingHours(conditions.hourly, now) : [];
+  const upcoming = left.length ? left : conditions?.hourly ?? [];
+  const startIndex = conditions ? conditions.hourly.length - upcoming.length : 0;
 
   return (
     <main className="page">
@@ -89,7 +93,7 @@ export function App() {
               <button key={s.id} type="button" aria-pressed={s.id === spotId} onClick={() => setSpotId(s.id)}>{s.name}</button>
             ))}
           </div>
-          <Timeline hours={conditions.hourly} windows={windows} />
+          <Timeline hours={conditions.hourly} windows={windows} startIndex={startIndex} />
           <Freshness info={fresh.forecast} />
 
           <h3>{copy.tideTable.heading}</h3>
@@ -97,13 +101,13 @@ export function App() {
           <Freshness info={fresh.tide} />
 
           <h3>{copy.seaTemp.heading}</h3>
-          <SeaTemp hours={conditions.hourly} />
+          <SeaTemp hours={upcoming} />
 
           <h3>{copy.weather.heading}</h3>
-          <WeatherStrip hours={conditions.hourly} />
+          <WeatherStrip hours={upcoming} />
 
           <h3>{copy.windTable.heading}</h3>
-          <WindStrip hours={conditions.hourly} />
+          <WindStrip hours={upcoming} />
           <Freshness info={fresh.forecast} />
         </section>
       )}

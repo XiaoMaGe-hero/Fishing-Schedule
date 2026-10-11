@@ -10,7 +10,7 @@ import { EChart } from "./EChart";
 type Lower = "wind" | "waves";
 
 /** Everything the chart draws, worked out from plain data. Labels are NZ time, set here, not by the browser. */
-export function timelineOption(hours: Hour[], windows: Window[], lower: Lower): EChartsCoreOption {
+export function timelineOption(hours: Hour[], windows: Window[], lower: Lower, startIndex = 0): EChartsCoreOption {
   const labels = hours.map((h) => formatTime(new Date(h.time_utc)));
   const days = dayStarts(hours);
   const nights: [{ xAxis: number }, { xAxis: number }][] = [];
@@ -53,7 +53,8 @@ export function timelineOption(hours: Hour[], windows: Window[], lower: Lower): 
     tooltip: { trigger: "axis", confine: true, axisPointer: { type: "line", lineStyle: { color: theme.muted } },
                textStyle: { fontSize: 12 } },
     axisPointer: { link: [{ xAxisIndex: [0, 1] }] },
-    dataZoom: [{ type: "inside", xAxisIndex: [0, 1], startValue: 0, endValue: Math.min(CHART_VISIBLE_HOURS, hours.length - 1),
+    dataZoom: [{ type: "inside", xAxisIndex: [0, 1], startValue: Math.min(startIndex, Math.max(0, hours.length - 1 - CHART_VISIBLE_HOURS)),
+                 endValue: Math.min(startIndex + CHART_VISIBLE_HOURS, hours.length - 1),
                  zoomLock: true, moveOnMouseMove: true, moveOnMouseWheel: false, preventDefaultMouseMove: false }],
     xAxis: [
       { ...axisBase, gridIndex: 0, axisLabel: { show: false } },
@@ -80,9 +81,9 @@ export function timelineOption(hours: Hour[], windows: Window[], lower: Lower): 
 }
 
 /** Tide on top, wind and rain (or waves) below, on one shared time axis that swipes through the week. */
-export function Timeline({ hours, windows }: { hours: Hour[]; windows: Window[] }) {
+export function Timeline({ hours, windows, startIndex }: { hours: Hour[]; windows: Window[]; startIndex: number }) {
   const [lower, setLower] = useState<Lower>("wind");
-  const option = useMemo(() => timelineOption(hours, windows, lower), [hours, windows, lower]);
+  const option = useMemo(() => timelineOption(hours, windows, lower, startIndex), [hours, windows, lower, startIndex]);
   return (
     <div className="timeline">
       <div className="segmented" role="group" aria-label={copy.timeline.heading}>

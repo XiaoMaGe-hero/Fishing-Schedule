@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { axisPosition, dayStarts, freshness, moonPhaseIndex, skyOf, todayCards, weekDays, type Spot } from "./derive";
+import { axisPosition, dayStarts, freshness, moonPhaseIndex, skyOf, todayCards, upcomingHours, weekDays, type Spot } from "./derive";
 import type { Conditions, Meta, Recommendations } from "./generated/types";
 
 const SPOTS: Spot[] = [
@@ -91,6 +91,14 @@ describe("small helpers", () => {
   const hours = Array.from({ length: 30 }, (_, i) => ({ time_utc: new Date(Date.UTC(2026, 9, 10, 5 + i)).toISOString().replace(".000", "") })) as Conditions["hourly"];
   it("finds where each NZ day starts on the hourly axis", () => {
     expect(dayStarts(hours)).toEqual([{ index: 0, dateKey: "2026-10-10" }, { index: 6, dateKey: "2026-10-11" }]);
+  });
+  it("starts the hour-by-hour views at the current hour, not at the last collection", () => {
+    // file starts 05:00Z; at 08:32Z the hours 05, 06 and 07 are over and 08:00 is the current one
+    const left = upcomingHours(hours, new Date("2026-10-10T08:32:00Z"));
+    expect(left[0].time_utc).toBe("2026-10-10T08:00:00Z");
+    expect(left.length).toBe(27);
+    expect(upcomingHours(hours, new Date("2026-10-10T04:00:00Z")).length).toBe(30);
+    expect(upcomingHours(hours, new Date("2026-10-12T00:00:00Z"))).toEqual([]);
   });
   it("places an instant on the hourly axis", () => {
     expect(axisPosition(hours, "2026-10-10T07:30:00Z")).toBe(2.5);

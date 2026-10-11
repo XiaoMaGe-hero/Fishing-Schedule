@@ -8,7 +8,7 @@ export const copy = {
   today: {
     heading: "Today",
     notRecommended: "Not recommended today",
-    notRecommendedHint: "No window reaches the bar today. See the week below.",
+    notRecommendedHint: "No good window in the rest of today. See the week below.",
     bestWindow: "Best window",
     passed: "Today's windows have passed",
     passedHint: "See the week below for the next one.",

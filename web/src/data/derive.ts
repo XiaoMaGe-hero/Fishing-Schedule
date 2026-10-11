@@ -81,6 +81,11 @@ export function freshness(meta: Meta | null, block: Block, now: Date): Freshness
   return { state, age: { unit: age.unit, value: age.value }, since: oldest };
 }
 
+/** The hours that are not over yet: the current hour first. The files also hold the hours since the last collection. */
+export function upcomingHours(hours: Hour[], now: Date): Hour[] {
+  return hours.filter((h) => new Date(h.time_utc).getTime() + 3_600_000 > now.getTime());
+}
+
 export interface DayBand { index: number; dateKey: string }
 
 /** Index of the first hour of each NZ calendar day inside the hourly list. */

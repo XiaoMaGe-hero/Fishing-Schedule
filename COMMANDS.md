@@ -152,7 +152,7 @@
 - 命令：`npm run build` 和 `npm test`
 - 运行目录：`web/`
 - 前置条件：已安装前端依赖
-- 预期结果：`npm run build` 最后一行 `✓ built in ...`，产物在 `web/dist/`；`npm test` 显示 `Tests  21 passed`。两条命令都会先运行 `scripts/prebuild.mjs`，从 `schemas/` 生成 TypeScript 类型，从 `config/spots.yaml` 生成钓点列表。
+- 预期结果：`npm run build` 最后一行 `✓ built in ...`，产物在 `web/dist/`；`npm test` 显示 `Tests  22 passed`。两条命令都会先运行 `scripts/prebuild.mjs`，从 `schemas/` 生成 TypeScript 类型，从 `config/spots.yaml` 生成钓点列表。
 - 记录：2026-10-10，M3。在开发环境运行过。
 
 ### 把时间固定在某一刻查看网页（调试用）
